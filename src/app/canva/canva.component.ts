@@ -12,23 +12,26 @@ export class CanvaComponent implements OnInit {
 	networkSubscription: Subscription;
 	network: Object;
 	@ViewChild('canvas', { static: true })
-  canvas: ElementRef<HTMLCanvasElement>; 
-	ctx;
-	circles: any[] = [];
-	selected: number = -1;
-	down: boolean = false;
-	previous: number[];
+  canvas: ElementRef<HTMLCanvasElement>;
+	ctx: CanvasRenderingContext2D; //Contexte
+	circles: any[] = []; //Liste des cercles
+	selected: number = -1; //Vaut l'index du cercle sélectionné, -1 sinon
+	down: boolean = false; //Vrai s'il y a clique
+	previous: number[]; //Position précédente de la souris
 
   constructor(private networkService: NetworkService) { }
 
   ngOnInit() {
+		//Observables
 		this.networkSubscription = this.networkService.networkSubject.subscribe(
 			(network: Object) => {
 				this.network = network;
 			}
 		);
 		this.networkService.emitNetworkSubject();
+		//Récupération du contexte
 		this.ctx = this.canvas.nativeElement.getContext('2d');
+		//Ajout d'événements de la souris
 		let y = this;
 		document.body.onmousedown = function() {
 			y.down = true;
@@ -60,10 +63,12 @@ export class CanvaComponent implements OnInit {
   }
 	
 	clear(circle: Object) {
+		//Efface un cercle
 		this.ctx.clearRect(circle['x'] - circle['r'] - 1, circle['y'] - circle['r'] - 1, circle['r'] * 2 + 2, circle['r'] * 2 + 2);
 	}
 	
 	erase(all: boolean) {
+		//Efface tous les cercles ou seulement celui sélectionné
 		if (all)
 			for (let i = 0; i < this.circles.length; i++)
 				this.clear(this.circles[i]);
@@ -72,6 +77,7 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	drawCircles() {
+		//Affiche tous les cercles
 		this.circles.forEach((circle) => {
 			this.ctx.fillStyle = circle['color'];
 			this.ctx.beginPath();
@@ -82,10 +88,12 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	distance(x1: number, y1: number, x2: number, y2: number) {
+		//Renvoie la distance entre deux points
 		return Math.sqrt((x2-x1)**2 + (y2-y1)**2);
 	}
 	
 	findCircle(x: number, y: number) {
+		//Si un cercle est trouvé, il devient sélectionné
 		let found: boolean = false;
 		for (let i = 0; i < this.circles.length; i++) {
 			let circle = this.circles[i];
@@ -99,10 +107,12 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	select(event: any) {
+		//Tente de sélectionné un cercle là où il y a eu un click
 		this.findCircle(event.x, event.y-170);
 	}
 	
 	move(event: any) {
+		//Déplace tous les cercles ou seulement celui sélectionné
 		if (this.down) {
 			this.erase(this.selected == -1);
 			if (this.selected != -1) {
@@ -121,6 +131,7 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	drop() {
+		//Désélectionne tout
 		this.selected = -1;
 		this.previous = null;
 	}
