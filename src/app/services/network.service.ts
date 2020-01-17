@@ -48,6 +48,11 @@ export class NetworkService {
 		this.newElementSubject.next(this.newElement);
 	}
 	
+	updateNetwork(network: Object) {
+		this.network = network;
+		this.emitNetworkSubject();
+	}
+	
 	link() {
 		this.linking = true;
 		this.emitLinkingSubject();

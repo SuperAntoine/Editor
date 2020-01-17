@@ -1,6 +1,11 @@
-<button (click)="exportJSON()" class="btn btn-success">Export</button>
-<br>
-<a [href]="fileUrl" download="network.json" *ngIf="fileUrl">Download</a>
-<br>
-<app-toolbar></app-toolbar>
-<app-canva></app-canva>
+<div class="container">
+    <app-toolbar></app-toolbar>
+    <div class="d-flex flex-row">
+        <app-canva class="mr-5"></app-canva>
+        <app-parameters></app-parameters>
+    </div>
+    <div class="container">
+        <button (click)="exportJSON()" class="btn btn-success">Export</button>
+        <a [href]="fileUrl" download="network.json" *ngIf="fileUrl">Download</a>
+    </div>
+</div>

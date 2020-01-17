@@ -110,9 +110,13 @@ export class CanvaComponent implements OnInit {
 		this.ctx.font = this.fontSize.toString() + 'px serif';
 	}
 	
+	erase() {
+		
+	}
+	
 	update() {
-		//%ets à jour l'affichage
-		this.ctx.clearRect(0, 0, 600, 300);
+		//Mets à jour l'affichage
+		this.ctx.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
 		
 		this.circles.forEach((circle) => {
 			if (circle['id'] == this.linkingFrom)
