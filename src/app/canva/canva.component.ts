@@ -17,7 +17,7 @@ export class CanvaComponent implements OnInit {
 	ctx: CanvasRenderingContext2D; //Contexte
 	fontSize: number = 10;
 	circles: any[] = []; //Liste des cercles
-	nextCircleId: number = 2;
+	nextCircleId: number = 0;
 	selected: number = -1; //Vaut l'index du cercle sélectionné, -1 sinon
 	down: boolean = false; //Vrai s'il y a clique
 	previous: number[]; //Position précédente de la souris
@@ -95,8 +95,8 @@ export class CanvaComponent implements OnInit {
 			(type: string) => {
 				this.circles.push({
 					id: this.nextCircleId++,
-					x: 300,
-					y: 150,
+					x: this.canvasElement.width/2,
+					y: this.canvasElement.height/2,
 					r: 30,
 					type: type,
 					text: 'new ' + type
@@ -104,24 +104,6 @@ export class CanvaComponent implements OnInit {
 				this.networkService.unlink();
 			}
 		);
-		
-		this.circles.push({
-			id: 0,
-			x: 50,
-			y: 50,
-			r: 30,
-			type: 'station',
-			text: 'Cercle 1'
-		});
-		this.circles.push({
-			id: 1,
-			x: 100,
-			y: 100,
-			r: 30,
-			type: 'shed',
-			text: 'Cercle 2'
-		});
-		this.update();
   }
 	
 	scaleFont() {
