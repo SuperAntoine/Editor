@@ -31,6 +31,7 @@ export class CanvaComponent implements OnInit {
 	nextLinkId: number = 0; //Prochain id de lien
 	loops: any[] = [];
 	nextLoopId: number = 0;
+	zoom: number = 0;
 
   constructor(private networkService: NetworkService) { }
 
@@ -57,6 +58,7 @@ export class CanvaComponent implements OnInit {
 			if (shift > 0 || y.fontSize > 2) {
 				y.fontSize += shift;
 				y.scaleFont();
+				y.zoom += shift;
 			}
 			
 			for (let i = 0; i < y.circles.length; i++) 
@@ -71,10 +73,10 @@ export class CanvaComponent implements OnInit {
 						const vectX = circle2['x'] - circle1['x'];
 						const vectY = circle2['y'] - circle1['y'];
 						const angle = Math.atan(vectY / vectX)
-						y.circles[i]['x'] -= shift * (Math.cos(angle)-1);
-						y.circles[i]['y'] -= shift * (Math.sin(angle)-1);
-						y.circles[j]['x'] += shift * (Math.cos(angle)+1);
-						y.circles[j]['y'] += shift * (Math.sin(angle)+1);
+						y.circles[i]['x'] += shift * (Math.cos(angle)-1);
+						y.circles[i]['y'] += shift * (Math.sin(angle)-1);
+						y.circles[j]['x'] -= shift * (Math.cos(angle)+1);
+						y.circles[j]['y'] -= shift * (Math.sin(angle)+1);
 					}
 				}
 				
@@ -104,7 +106,7 @@ export class CanvaComponent implements OnInit {
 					id: this.nextCircleId++,
 					x: this.canvasElement.width/2,
 					y: this.canvasElement.height/2,
-					r: 30,
+					r: 30 + this.zoom,
 					type: type,
 					text: 'new ' + type
 				});
