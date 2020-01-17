@@ -13,6 +13,8 @@ export class EditorComponent implements OnInit {
 	networkSubscription: Subscription;
 	network: Object;
 	fileUrl;
+	linkingSubscription: Subscription;
+	linking: boolean;
 
   constructor(private networkService: NetworkService,
 							private sanitizer: DomSanitizer) { }
@@ -24,12 +26,22 @@ export class EditorComponent implements OnInit {
 			}
 		);
 		this.networkService.emitNetworkSubject();
+		this.linkingSubscription = this.networkService.linkingSubject.subscribe(
+			(linking: boolean) => {
+				this.linking = linking;
+			}
+		);
+		this.networkService.emitLinkingSubject();
   }
 	
 	exportJSON() {
 		let blob = new Blob([JSON.stringify(this.network)], { type: 'application/json' });
 		let url = window.URL.createObjectURL(blob);
 		this.fileUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+	}
+	
+	link() {
+		this.networkService.link();
 	}
 
 }

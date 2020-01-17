@@ -6,6 +6,8 @@ import { Injectable } from '@angular/core';
 export class NetworkService {
 	networkSubject = new Subject<Object>();
 	network: Object;
+	linkingSubject = new Subject<boolean>();
+	linking: boolean;
 	
 	init() {
 		this.network = {
@@ -28,10 +30,26 @@ export class NetworkService {
 			bridges: []
 		};
 		this.emitNetworkSubject();
+		this.linking = false;
+		this.emitLinkingSubject();
 	}
 	
 	emitNetworkSubject() {
 		this.networkSubject.next(this.network);
+	}
+	
+	emitLinkingSubject() {
+		this.linkingSubject.next(this.linking);
+	}
+	
+	link() {
+		this.linking = true;
+		this.emitLinkingSubject();
+	}
+	
+	unlink() {
+		this.linking = false;
+		this.emitLinkingSubject();
 	}
 	
 }

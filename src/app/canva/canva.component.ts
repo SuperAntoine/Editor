@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnInit, } from '@angular/core';
 import { Subscription } from 'rxjs-compat/Subscription';
 import { NetworkService } from '../services/network.service';
  
@@ -14,12 +14,17 @@ export class CanvaComponent implements OnInit {
 	@ViewChild('canvas', { static: true })
   canvas: ElementRef<HTMLCanvasElement>;
 	ctx: CanvasRenderingContext2D; //Contexte
-	shift: number = 170;
+	shift: number = 195;
 	fontSize: number = 10;
 	circles: any[] = []; //Liste des cercles
 	selected: number = -1; //Vaut l'index du cercle sélectionné, -1 sinon
 	down: boolean = false; //Vrai s'il y a clique
 	previous: number[]; //Position précédente de la souris
+	linkingSubscription: Subscription;
+	linking: boolean;
+	linkingFrom: number = -1;
+	links: any[] = [];
+	nextLinkId: number = 0;
 
   constructor(private networkService: NetworkService) { }
 
@@ -31,6 +36,12 @@ export class CanvaComponent implements OnInit {
 			}
 		);
 		this.networkService.emitNetworkSubject();
+		this.linkingSubscription = this.networkService.linkingSubject.subscribe(
+			(linking: boolean) => {
+				this.linking = linking;
+			}
+		);
+		this.networkService.emitLinkingSubject();
 		//Récupération du contexte
 		this.ctx = this.canvas.nativeElement.getContext('2d');
 		this.ctx.textAlign = 'center';
@@ -92,18 +103,9 @@ export class CanvaComponent implements OnInit {
 		this.drawCircles();
   }
 	
-	clear(circle: Object) {
-		//Efface un cercle
-		this.ctx.clearRect(circle['x'] - circle['r'] - 1, circle['y'] - circle['r'] - 1, circle['r'] * 2 + 2, (circle['r'] * 2 + 2) * 1.3);
-	}
-	
 	erase(all: boolean) {
 		//Efface tous les cercles ou seulement celui sélectionné
-		if (all)
-			for (let i = 0; i < this.circles.length; i++)
-				this.clear(this.circles[i]);
-		else 
-			this.clear(this.circles[this.selected]);
+		this.ctx.clearRect(0, 0, 600, 300);
 	}
 	
 	scaleFont() {
@@ -113,13 +115,49 @@ export class CanvaComponent implements OnInit {
 	drawCircles() {
 		//Affiche tous les cercles
 		this.circles.forEach((circle) => {
-			this.ctx.fillStyle = circle['color'];
+			if (circle['id'] == this.linkingFrom)
+				this.ctx.fillStyle = 'yellow';
+			else
+				this.ctx.fillStyle = circle['color'];
 			this.ctx.beginPath();
 			this.ctx.arc(circle['x'], circle['y'], circle['r'], 0, Math.PI * 2);
 			this.ctx.stroke();
 			this.ctx.fill();
-			this.ctx.strokeText(circle['text'], circle['x'], circle['y'] + circle['r'] * 1.3, circle['r'] * 2);
+			this.ctx.fillStyle = 'black';
+			this.ctx.fillText(circle['text'], circle['x'], circle['y'] + circle['r'] * 1.3, circle['r'] * 2);
+			this.ctx.closePath();
 		});
+		this.links.forEach((link) => {
+			let circle1 = this.circles[link['from']];
+			let circle2 = this.circles[link['to']];
+			this.ctx.beginPath();
+			this.ctx.moveTo(circle1['x'], circle1['y']);
+			this.ctx.lineTo(circle2['x'], circle2['y']);
+			this.ctx.stroke();
+			this.ctx.closePath();
+		});
+	}
+	
+	linkExist(id1, id2) {
+		for (let i = 0; i < this.links.length; i++) {
+			let link = this.links[i];
+			if ((link['from'] == id1 && link['to'] == id2) || (link['from'] == id2 && link['to'] == id1))
+				return true;
+		}
+		return false;
+	}
+	
+	createLink(id1: number, id2: number) {
+		if (id1 != id2 && !this.linkExist(id1, id2)) {
+			this.links.push({
+				id: this.nextLinkId++,
+				from: id1,
+				to: id2
+			});
+		}
+		this.networkService.unlink();
+		this.linkingFrom = -1;
+		this.drawCircles();
 	}
 	
 	distance(x1: number, y1: number, x2: number, y2: number) {
@@ -133,17 +171,27 @@ export class CanvaComponent implements OnInit {
 		for (let i = 0; i < this.circles.length; i++) {
 			let circle = this.circles[i];
 			if (this.distance(circle['x'], circle['y'], x, y) < circle['r']) {
-				this.selected = i;
+				if (this.linking) {
+					if (this.linkingFrom == -1)
+						this.linkingFrom = i;
+					else 
+						this.createLink(this.linkingFrom, circle['id']);
+				} else
+					this.selected = i;
 				found = true;
 			}
 		}
-		if (!found)
+		if (!found) {
 			this.selected = -1;
+			this.linkingFrom = -1;
+			this.networkService.unlink();
+		}
 	}
 	
 	select(event: any) {
 		//Tente de sélectionné un cercle là où il y a eu un click
 		this.findCircle(event.x, event.y-this.shift);
+		this.drawCircles();
 	}
 	
 	move(event: any) {
