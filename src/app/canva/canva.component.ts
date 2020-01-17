@@ -9,24 +9,26 @@ import { NetworkService } from '../services/network.service';
 })
 export class CanvaComponent implements OnInit {
 
-	networkSubscription: Subscription;
-	network: Object;
 	@ViewChild('canvas', { static: true })
   canvas: ElementRef<HTMLCanvasElement>;
-	canvasElement;
+	canvasElement; //Elément canvas
 	ctx: CanvasRenderingContext2D; //Contexte
-	fontSize: number = 10;
+	
+	networkSubscription: Subscription;
+	linkingSubscription: Subscription;
+	newElementSubscription: Subscription;
+	
+	network: Object; //Réseau
+	fontSize: number = 10; //Taille de la police
 	circles: any[] = []; //Liste des cercles
-	nextCircleId: number = 0;
+	nextCircleId: number = 0; //Prochain id de cercle
 	selected: number = -1; //Vaut l'index du cercle sélectionné, -1 sinon
 	down: boolean = false; //Vrai s'il y a clique
 	previous: number[]; //Position précédente de la souris
-	linkingSubscription: Subscription;
-	linking: boolean;
-	linkingFrom: number = -1;
-	links: any[] = [];
-	nextLinkId: number = 0;
-	newElementSubscription: Subscription;
+	linking: boolean; //Vaut vrai si un lien est entrain d'être créé
+	linkingFrom: number = -1; //Origine du lien
+	links: any[] = []; //Liste des liens
+	nextLinkId: number = 0; //Prochain id de lien
 
   constructor(private networkService: NetworkService) { }
 
@@ -35,8 +37,10 @@ export class CanvaComponent implements OnInit {
 		//Récupération du contexte
 		this.ctx = this.canvas.nativeElement.getContext('2d');
 		this.ctx.textAlign = 'center';
+		
 		//Ajout d'événements de la souris
 		let y = this;
+		
 		//Détection du click
 		document.body.onmousedown = function() {
 			y.down = true;
@@ -44,6 +48,7 @@ export class CanvaComponent implements OnInit {
 		document.body.onmouseup = function() {
 			y.down = false;
 		}
+		
 		//Gestion du zoom avec la molette
 		document.body.onwheel = function(event) {
 			let shift = -1 * Math.sign(event.deltaY);
@@ -108,10 +113,6 @@ export class CanvaComponent implements OnInit {
 	
 	scaleFont() {
 		this.ctx.font = this.fontSize.toString() + 'px serif';
-	}
-	
-	erase() {
-		
 	}
 	
 	update() {
