@@ -42,22 +42,41 @@ export class CanvaComponent implements OnInit {
 		document.body.onwheel = function(event) {
 			let shift = -1 * Math.sign(event.deltaY);
 			y.erase(true);
-			for (let i = 0; i < y.circles.length; i++) {
-				y.circles[i]['r'] += shift;
-			}
+			
+			for (let i = 0; i < y.circles.length; i++) 
+				if (shift > 0 || y.circles[i]['r'] > 2)
+					y.circles[i]['r'] += shift;
+				
+			for (let i = 0; i < y.circles.length-1; i++)
+				for (let j = i+1; j < y.circles.length; j++) {
+					if (shift > 0 || y.circles[i]['r'] > 2 && y.circles[j]['r'] > 2) {
+						let circle1 = y.circles[i];
+						let circle2 = y.circles[j];
+						let vectX = circle2['x'] - circle1['x'];
+						let vectY = circle2['y'] - circle1['y'];
+						let angle = Math.atan(vectY / vectX)
+						y.circles[i]['x'] -= shift * (Math.cos(angle)-1);
+						y.circles[i]['y'] -= shift * (Math.sin(angle)-1);
+						y.circles[j]['x'] += shift * (Math.cos(angle)+1);
+						y.circles[j]['y'] += shift * (Math.sin(angle)+1);
+					}
+				}
+				
 			y.drawCircles();
 		}
 		this.circles.push({
 			x: 50,
 			y: 50,
 			r: 30,
-			color: 'red'
+			color: 'red',
+			id: 0
 		});
 		this.circles.push({
 			x: 100,
 			y: 100,
 			r: 30,
-			color: 'blue'
+			color: 'blue',
+			id: 1
 		});
 		this.drawCircles();
   }
