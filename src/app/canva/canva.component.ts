@@ -29,6 +29,8 @@ export class CanvaComponent implements OnInit {
 	linkingFrom: number = -1; //Origine du lien
 	links: any[] = []; //Liste des liens
 	nextLinkId: number = 0; //Prochain id de lien
+	loops: any[] = [];
+	nextLoopId: number = 0;
 
   constructor(private networkService: NetworkService) { }
 
@@ -116,6 +118,22 @@ export class CanvaComponent implements OnInit {
 		this.ctx.font = this.fontSize.toString() + 'px serif';
 	}
 	
+	getCircle(id: number) {
+		//Renvoie un cercle selon l'id
+		for (let i = 0; i < this.circles.length; i++)
+			if (this.circles[i]['id'] == id)
+				return this.circles[i];
+		return null;
+	}
+	
+	getLink(id: number) {
+		//Renvoie un lien selon l'id
+		for (let i = 0; i < this.links.length; i++)
+			if (this.links[i]['id'] == id)
+				return this.links[i];
+		return null;
+	}
+	
 	update() {
 		//Mets à jour l'affichage
 		this.ctx.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
@@ -158,13 +176,86 @@ export class CanvaComponent implements OnInit {
 			this.ctx.stroke();
 			this.ctx.closePath();
 		});
+		
+		//Affiche des boucles
+		this.loops.forEach((loop) => {
+			const n = loop['loop'].length;
+			let centerX = 0;
+			let centerY = 0;
+			loop['loop'].forEach((linkId) => {
+				const link = this.getLink(linkId);
+				const circle = this.getCircle(link['from']);
+				centerX += circle['x'];
+				centerY += circle['y'];
+			});
+			centerX /= n;
+			centerY /= n;
+			this.ctx.beginPath();
+			this.ctx.fillStyle = 'black';
+			this.ctx.fillText(loop['name'], centerX, centerY);
+		});
 	}
 	
-	linkExist(id1, id2) {
-		//Renvoie vrai si le lien existe déjà
+	findLink(id: number) {
+		//Renvoie l'indice d'un lien selon l'id
+		for (let i = 0; i < this.links.length; i++)
+			if (this.links[i]['from'] == id)
+				return i;
+		return -1;
+	}
+	
+	checkForLoops() {
+		//Vérifie s'il faut créer une boucle
 		for (let i = 0; i < this.links.length; i++) {
 			const link = this.links[i];
-			if ((link['from'] == id1 && link['to'] == id2) || (link['from'] == id2 && link['to'] == id1))
+			if (!link.inLoop) {
+				let stop = false;
+				let isLoop = false;
+				let links = Object.assign([], this.links);
+				let next = link['to'];
+				let way = [i];
+				const id = link['from'];
+				
+				for (let j = 0; j < links.length; j++)
+					links[j]['checked'] = false;
+				links[i]['checked'] = true;
+				
+				while (!stop && !isLoop) {
+					//On cherche le prochain lien
+					const nextLink = this.findLink(next);
+					if (nextLink == -1)
+						//S'il n'existe pas la boucle n'est pas fermée
+						stop = true;
+					else if (links[nextLink]['checked'])
+						//Si le lien est déjà marqué, on est revenu au point de départ
+						isLoop = true;
+					else {
+						//Sinon, on ajoute le lien au chemin et on passe au suivant
+						way.push(nextLink);
+						next = links[nextLink]['to'];
+					}
+				}
+				if (isLoop) {
+					let loop = []
+					for (let j of way) {
+						this.links[j].inLoop = true;
+						loop.push(this.links[j]['from']);
+					}
+					this.loops.push({
+						id: this.nextLoopId,
+						name: 'Untitled loop',
+						loop: way
+					});
+				}
+			}
+		}
+	}
+	
+	alreadyLinked(id1, id2) {
+		//Détecte si un les cercles ne sont pas déjà origine ou destination d'un lien
+		for (let i = 0; i < this.links.length; i++) {
+			const link = this.links[i];
+			if (link['from'] == id1 || link['to'] == id2)
 				return true;
 		}
 		return false;
@@ -172,14 +263,17 @@ export class CanvaComponent implements OnInit {
 	
 	createLink(id1: number, id2: number) {
 		//Crée un nouveau lien
-		if (id1 != id2 && !this.linkExist(id1, id2)) {
+		if (id1 != id2 && !this.alreadyLinked(id1, id2)) {
 			this.links.push({
 				id: this.nextLinkId++,
 				from: id1,
-				to: id2
+				to: id2,
+				inLoop: false
 			});
 		}
 		this.networkService.unlink();
+		this.checkForLoops();
+		console.log(this.loops);
 	}
 	
 	distance(x1: number, y1: number, x2: number, y2: number) {
