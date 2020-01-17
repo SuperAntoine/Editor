@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, OnInit, } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs-compat/Subscription';
 import { NetworkService } from '../services/network.service';
  
@@ -17,6 +17,7 @@ export class CanvaComponent implements OnInit {
 	ctx: CanvasRenderingContext2D; //Contexte
 	fontSize: number = 10;
 	circles: any[] = []; //Liste des cercles
+	nextCircleId: number = 2;
 	selected: number = -1; //Vaut l'index du cercle sélectionné, -1 sinon
 	down: boolean = false; //Vrai s'il y a clique
 	previous: number[]; //Position précédente de la souris
@@ -25,6 +26,7 @@ export class CanvaComponent implements OnInit {
 	linkingFrom: number = -1;
 	links: any[] = [];
 	nextLinkId: number = 0;
+	newElementSubscription: Subscription;
 
   constructor(private networkService: NetworkService) { }
 
@@ -42,6 +44,20 @@ export class CanvaComponent implements OnInit {
 			}
 		);
 		this.networkService.emitLinkingSubject();
+		this.newElementSubscription = this.networkService.newElementSubject.subscribe(
+			(type: string) => {
+				this.circles.push({
+					id: this.nextCircleId++,
+					x: 300,
+					y: 150,
+					r: 30,
+					type: type,
+					text: 'new ' + type
+				});
+				this.update();
+			}
+		);
+		
 		this.canvasElement = document.querySelector('canvas');
 		//Récupération du contexte
 		this.ctx = this.canvas.nativeElement.getContext('2d');
@@ -89,7 +105,7 @@ export class CanvaComponent implements OnInit {
 			x: 50,
 			y: 50,
 			r: 30,
-			color: 'red',
+			type: 'station',
 			text: 'Cercle 1'
 		});
 		this.circles.push({
@@ -97,7 +113,7 @@ export class CanvaComponent implements OnInit {
 			x: 100,
 			y: 100,
 			r: 30,
-			color: 'blue',
+			type: 'shed',
 			text: 'Cercle 2'
 		});
 		this.update();
@@ -115,7 +131,16 @@ export class CanvaComponent implements OnInit {
 			if (circle['id'] == this.linkingFrom)
 				this.ctx.fillStyle = 'yellow';
 			else
-				this.ctx.fillStyle = circle['color'];
+				switch(circle['type']) {
+					case 'station': {
+						this.ctx.fillStyle = 'red';
+						break;
+					}
+					case 'shed': {
+						this.ctx.fillStyle = 'blue';
+						break;
+					}
+				}
 			this.ctx.beginPath();
 			this.ctx.arc(circle['x'], circle['y'], circle['r'], 0, Math.PI * 2);
 			this.ctx.stroke();

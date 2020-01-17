@@ -43,5 +43,9 @@ export class EditorComponent implements OnInit {
 	link() {
 		this.networkService.link();
 	}
+	
+	addElement(type: string) {
+		this.networkService.addElement(type);
+	}
 
 }
