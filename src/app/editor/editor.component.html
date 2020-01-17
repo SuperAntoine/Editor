@@ -1,0 +1,13 @@
+<button (click)="exportJSON()" class="btn btn-success">Export</button>
+<br>
+<a [href]="fileUrl" download="network.json" *ngIf="fileUrl">Download</a>
+<br>
+<div class="bordered" id="elements">
+    <svg height="50" width="50" class="add">
+      <circle cx="25" cy="25" r="20" stroke="black" stroke-width="1.5" fill="red" />
+    </svg> 
+    <svg height="50" width="50" class="add">
+      <circle cx="25" cy="25" r="20" stroke="black" stroke-width="1.5" fill="blue" />
+    </svg> 
+</div>
+<app-canva></app-canva>
