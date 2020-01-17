@@ -112,6 +112,7 @@ export class CanvaComponent implements OnInit {
   }
 	
 	scaleFont() {
+		//Change la police d'écriture
 		this.ctx.font = this.fontSize.toString() + 'px serif';
 	}
 	
@@ -119,7 +120,9 @@ export class CanvaComponent implements OnInit {
 		//Mets à jour l'affichage
 		this.ctx.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
 		
+		//Affichage des cerlces
 		this.circles.forEach((circle) => {
+			//Couleur
 			if (circle['id'] == this.linkingFrom)
 				this.ctx.fillStyle = 'yellow';
 			else
@@ -133,15 +136,19 @@ export class CanvaComponent implements OnInit {
 						break;
 					}
 				}
+				
+			//Traçage du cercle
 			this.ctx.beginPath();
 			this.ctx.arc(circle['x'], circle['y'], circle['r'], 0, Math.PI * 2);
 			this.ctx.stroke();
 			this.ctx.fill();
+			//Affichage du texte
 			this.ctx.fillStyle = 'black';
 			this.ctx.fillText(circle['text'], circle['x'], circle['y'] + circle['r'] * 1.3, circle['r'] * 2);
 			this.ctx.closePath();
 		});
 		
+		//Affichage des liens
 		this.links.forEach((link) => {
 			let circle1 = this.circles[link['from']];
 			let circle2 = this.circles[link['to']];
@@ -154,6 +161,7 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	linkExist(id1, id2) {
+		//Renvoie vrai si le lien existe déjà
 		for (let i = 0; i < this.links.length; i++) {
 			const link = this.links[i];
 			if ((link['from'] == id1 && link['to'] == id2) || (link['from'] == id2 && link['to'] == id1))
@@ -163,6 +171,7 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	createLink(id1: number, id2: number) {
+		//Crée un nouveau lien
 		if (id1 != id2 && !this.linkExist(id1, id2)) {
 			this.links.push({
 				id: this.nextLinkId++,
@@ -201,6 +210,7 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	getShift() {
+		//Calcule le décalage du canvas par rapport à la page
 		const rect = this.canvasElement.getBoundingClientRect();
 		return { 
 			x: rect.left,
