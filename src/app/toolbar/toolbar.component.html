@@ -1,9 +1,9 @@
-<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
-  <div class="btn-group mr-2" role="group" aria-label="First group">
+<div class="btn-toolbar" role="toolbar">
+  <div class="btn-group mr-2" role="group">
     <button class="btn btn-primary" (click)="addElement('station')">Add station</button>
     <button class="btn btn-primary" (click)="addElement('shed')">Add shed</button>
   </div>
-  <div class="btn-group" role="group" aria-label="Second group">
+  <div class="btn-group" role="group">
     <button class="btn" 
             [ngClass]="{'btn-primary': !linking, 'btn-warning': linking}"
             (click)="link()">
