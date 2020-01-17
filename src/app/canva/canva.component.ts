@@ -13,8 +13,8 @@ export class CanvaComponent implements OnInit {
 	network: Object;
 	@ViewChild('canvas', { static: true })
   canvas: ElementRef<HTMLCanvasElement>;
+	canvasElement;
 	ctx: CanvasRenderingContext2D; //Contexte
-	shift: number = 195;
 	fontSize: number = 10;
 	circles: any[] = []; //Liste des cercles
 	selected: number = -1; //Vaut l'index du cercle sélectionné, -1 sinon
@@ -42,6 +42,7 @@ export class CanvaComponent implements OnInit {
 			}
 		);
 		this.networkService.emitLinkingSubject();
+		this.canvasElement = document.querySelector('canvas');
 		//Récupération du contexte
 		this.ctx = this.canvas.nativeElement.getContext('2d');
 		this.ctx.textAlign = 'center';
@@ -69,11 +70,11 @@ export class CanvaComponent implements OnInit {
 			for (let i = 0; i < y.circles.length-1; i++)
 				for (let j = i+1; j < y.circles.length; j++) {
 					if (shift > 0 || y.circles[i]['r'] > 2 && y.circles[j]['r'] > 2) {
-						let circle1 = y.circles[i];
-						let circle2 = y.circles[j];
-						let vectX = circle2['x'] - circle1['x'];
-						let vectY = circle2['y'] - circle1['y'];
-						let angle = Math.atan(vectY / vectX)
+						const circle1 = y.circles[i];
+						const circle2 = y.circles[j];
+						const vectX = circle2['x'] - circle1['x'];
+						const vectY = circle2['y'] - circle1['y'];
+						const angle = Math.atan(vectY / vectX)
 						y.circles[i]['x'] -= shift * (Math.cos(angle)-1);
 						y.circles[i]['y'] -= shift * (Math.sin(angle)-1);
 						y.circles[j]['x'] += shift * (Math.cos(angle)+1);
@@ -137,7 +138,7 @@ export class CanvaComponent implements OnInit {
 	
 	linkExist(id1, id2) {
 		for (let i = 0; i < this.links.length; i++) {
-			let link = this.links[i];
+			const link = this.links[i];
 			if ((link['from'] == id1 && link['to'] == id2) || (link['from'] == id2 && link['to'] == id1))
 				return true;
 		}
@@ -166,7 +167,7 @@ export class CanvaComponent implements OnInit {
 		//Si un cercle est trouvé, il devient sélectionné
 		let found: boolean = false;
 		for (let i = 0; i < this.circles.length; i++) {
-			let circle = this.circles[i];
+		  const circle = this.circles[i];
 			if (this.distance(circle['x'], circle['y'], x, y) < circle['r']) {
 				if (this.linking) {
 					if (this.linkingFrom == -1)
@@ -185,18 +186,28 @@ export class CanvaComponent implements OnInit {
 		}
 	}
 	
+	getShift() {
+		const rect = this.canvasElement.getBoundingClientRect();
+		return { 
+			x: rect.left,
+			y: rect.top
+		};
+	}
+	
 	select(event: any) {
 		//Tente de sélectionné un cercle là où il y a eu un click
-		this.findCircle(event.x, event.y-this.shift);
+		const shift = this.getShift();
+		this.findCircle(event.x - shift['x'], event.y - shift['y']);
 		this.update();
 	}
 	
 	move(event: any) {
 		//Déplace tous les cercles ou seulement celui sélectionné
 		if (this.down) {
+			const shift = this.getShift();
 			if (this.selected != -1) {
-				this.circles[this.selected]['x'] = event.x;
-				this.circles[this.selected]['y'] = event.y - this.shift;
+				this.circles[this.selected]['x'] = event.x - shift['x'];
+				this.circles[this.selected]['y'] = event.y - shift['y'];
 			} else {
 				if (this.previous != null)
 					for (let i = 0; i < this.circles.length; i++) {

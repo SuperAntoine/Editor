@@ -2,13 +2,13 @@
 <br>
 <a [href]="fileUrl" download="network.json" *ngIf="fileUrl">Download</a>
 <br>
-<div class="bordered" id="elements">
-    <svg height="50" width="50" class="add">
-      <circle cx="25" cy="25" r="20" stroke="black" stroke-width="1.5" fill="red" />
-    </svg> 
-    <svg height="50" width="50" class="add">
-      <circle cx="25" cy="25" r="20" stroke="black" stroke-width="1.5" fill="blue" />
-    </svg> 
-    <span class="add" (click)="link()">Link</span>
+<div class="d-flex flex-row" id="elements">
+    <button class="btn btn-primary">Add station</button>
+    <button class="btn btn-primary">Add shed</button>
+    <button class="btn" 
+            [ngClass]="{'btn-primary': !linking, 'btn-warning': linking}"
+            (click)="link()">
+        Add link
+    </button>
 </div>
 <app-canva></app-canva>
