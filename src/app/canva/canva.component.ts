@@ -61,7 +61,6 @@ export class CanvaComponent implements OnInit {
 				y.fontSize += shift;
 				y.scaleFont();
 			}
-			y.erase(true);
 			
 			for (let i = 0; i < y.circles.length; i++) 
 				if (shift > 0 || y.circles[i]['r'] > 2)
@@ -82,7 +81,7 @@ export class CanvaComponent implements OnInit {
 					}
 				}
 				
-			y.drawCircles();
+			y.update();
 		}
 		this.circles.push({
 			id: 0,
@@ -100,20 +99,17 @@ export class CanvaComponent implements OnInit {
 			color: 'blue',
 			text: 'Cercle 2'
 		});
-		this.drawCircles();
+		this.update();
   }
-	
-	erase(all: boolean) {
-		//Efface tous les cercles ou seulement celui sélectionné
-		this.ctx.clearRect(0, 0, 600, 300);
-	}
 	
 	scaleFont() {
 		this.ctx.font = this.fontSize.toString() + 'px serif';
 	}
 	
-	drawCircles() {
-		//Affiche tous les cercles
+	update() {
+		//%ets à jour l'affichage
+		this.ctx.clearRect(0, 0, 600, 300);
+		
 		this.circles.forEach((circle) => {
 			if (circle['id'] == this.linkingFrom)
 				this.ctx.fillStyle = 'yellow';
@@ -127,6 +123,7 @@ export class CanvaComponent implements OnInit {
 			this.ctx.fillText(circle['text'], circle['x'], circle['y'] + circle['r'] * 1.3, circle['r'] * 2);
 			this.ctx.closePath();
 		});
+		
 		this.links.forEach((link) => {
 			let circle1 = this.circles[link['from']];
 			let circle2 = this.circles[link['to']];
@@ -157,7 +154,7 @@ export class CanvaComponent implements OnInit {
 		}
 		this.networkService.unlink();
 		this.linkingFrom = -1;
-		this.drawCircles();
+		this.update();
 	}
 	
 	distance(x1: number, y1: number, x2: number, y2: number) {
@@ -191,13 +188,12 @@ export class CanvaComponent implements OnInit {
 	select(event: any) {
 		//Tente de sélectionné un cercle là où il y a eu un click
 		this.findCircle(event.x, event.y-this.shift);
-		this.drawCircles();
+		this.update();
 	}
 	
 	move(event: any) {
 		//Déplace tous les cercles ou seulement celui sélectionné
 		if (this.down) {
-			this.erase(this.selected == -1);
 			if (this.selected != -1) {
 				this.circles[this.selected]['x'] = event.x;
 				this.circles[this.selected]['y'] = event.y - this.shift;
@@ -209,7 +205,7 @@ export class CanvaComponent implements OnInit {
 					}
 				this.previous = [event.x, event.y];
 			}
-			this.drawCircles();
+			this.update();
 		}
 	}
 	
