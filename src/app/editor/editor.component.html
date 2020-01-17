@@ -2,13 +2,5 @@
 <br>
 <a [href]="fileUrl" download="network.json" *ngIf="fileUrl">Download</a>
 <br>
-<div class="d-flex flex-row" id="elements">
-    <button class="btn btn-primary" (click)="addElement('station')">Add station</button>
-    <button class="btn btn-primary" (click)="addElement('shed')">Add shed</button>
-    <button class="btn" 
-            [ngClass]="{'btn-primary': !linking, 'btn-warning': linking}"
-            (click)="link()">
-        Add link
-    </button>
-</div>
+<app-toolbar></app-toolbar>
 <app-canva></app-canva>

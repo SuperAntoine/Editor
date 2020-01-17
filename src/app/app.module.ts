@@ -7,12 +7,14 @@ import { NetworkService } from './services/network.service';
 import { AppComponent } from './app.component';
 import { EditorComponent } from './editor/editor.component';
 import { CanvaComponent } from './canva/canva.component';
+import { ToolbarComponent } from './toolbar/toolbar.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     EditorComponent,
-		CanvaComponent
+		CanvaComponent,
+		ToolbarComponent
   ],
   imports: [
     BrowserModule,

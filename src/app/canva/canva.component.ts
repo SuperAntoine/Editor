@@ -30,34 +30,7 @@ export class CanvaComponent implements OnInit {
 
   constructor(private networkService: NetworkService) { }
 
-  ngOnInit() {
-		//Observables
-		this.networkSubscription = this.networkService.networkSubject.subscribe(
-			(network: Object) => {
-				this.network = network;
-			}
-		);
-		this.networkService.emitNetworkSubject();
-		this.linkingSubscription = this.networkService.linkingSubject.subscribe(
-			(linking: boolean) => {
-				this.linking = linking;
-			}
-		);
-		this.networkService.emitLinkingSubject();
-		this.newElementSubscription = this.networkService.newElementSubject.subscribe(
-			(type: string) => {
-				this.circles.push({
-					id: this.nextCircleId++,
-					x: 300,
-					y: 150,
-					r: 30,
-					type: type,
-					text: 'new ' + type
-				});
-				this.update();
-			}
-		);
-		
+  ngOnInit() {		
 		this.canvasElement = document.querySelector('canvas');
 		//Récupération du contexte
 		this.ctx = this.canvas.nativeElement.getContext('2d');
@@ -100,6 +73,38 @@ export class CanvaComponent implements OnInit {
 				
 			y.update();
 		}
+		
+		//Observables
+		this.networkSubscription = this.networkService.networkSubject.subscribe(
+			(network: Object) => {
+				this.network = network;
+			}
+		);
+		this.networkService.emitNetworkSubject();
+		this.linkingSubscription = this.networkService.linkingSubject.subscribe(
+			(linking: boolean) => {
+				this.linking = linking;
+				if (!linking) {
+					this.linkingFrom = -1;
+					this.update();
+				}
+			}
+		);
+		this.networkService.emitLinkingSubject();
+		this.newElementSubscription = this.networkService.newElementSubject.subscribe(
+			(type: string) => {
+				this.circles.push({
+					id: this.nextCircleId++,
+					x: 300,
+					y: 150,
+					r: 30,
+					type: type,
+					text: 'new ' + type
+				});
+				this.networkService.unlink();
+			}
+		);
+		
 		this.circles.push({
 			id: 0,
 			x: 50,
@@ -179,8 +184,6 @@ export class CanvaComponent implements OnInit {
 			});
 		}
 		this.networkService.unlink();
-		this.linkingFrom = -1;
-		this.update();
 	}
 	
 	distance(x1: number, y1: number, x2: number, y2: number) {
@@ -206,7 +209,6 @@ export class CanvaComponent implements OnInit {
 		}
 		if (!found) {
 			this.selected = -1;
-			this.linkingFrom = -1;
 			this.networkService.unlink();
 		}
 	}
