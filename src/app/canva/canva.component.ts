@@ -14,6 +14,8 @@ export class CanvaComponent implements OnInit {
 	@ViewChild('canvas', { static: true })
   canvas: ElementRef<HTMLCanvasElement>;
 	ctx: CanvasRenderingContext2D; //Contexte
+	shift: number = 170;
+	fontSize: number = 10;
 	circles: any[] = []; //Liste des cercles
 	selected: number = -1; //Vaut l'index du cercle sélectionné, -1 sinon
 	down: boolean = false; //Vrai s'il y a clique
@@ -31,16 +33,23 @@ export class CanvaComponent implements OnInit {
 		this.networkService.emitNetworkSubject();
 		//Récupération du contexte
 		this.ctx = this.canvas.nativeElement.getContext('2d');
+		this.ctx.textAlign = 'center';
 		//Ajout d'événements de la souris
 		let y = this;
+		//Détection du click
 		document.body.onmousedown = function() {
 			y.down = true;
 		};
 		document.body.onmouseup = function() {
 			y.down = false;
 		}
+		//Gestion du zoom avec la molette
 		document.body.onwheel = function(event) {
 			let shift = -1 * Math.sign(event.deltaY);
+			if (shift > 0 || y.fontSize > 2) {
+				y.fontSize += shift;
+				y.scaleFont();
+			}
 			y.erase(true);
 			
 			for (let i = 0; i < y.circles.length; i++) 
@@ -65,25 +74,27 @@ export class CanvaComponent implements OnInit {
 			y.drawCircles();
 		}
 		this.circles.push({
+			id: 0,
 			x: 50,
 			y: 50,
 			r: 30,
 			color: 'red',
-			id: 0
+			text: 'Cercle 1'
 		});
 		this.circles.push({
+			id: 1,
 			x: 100,
 			y: 100,
 			r: 30,
 			color: 'blue',
-			id: 1
+			text: 'Cercle 2'
 		});
 		this.drawCircles();
   }
 	
 	clear(circle: Object) {
 		//Efface un cercle
-		this.ctx.clearRect(circle['x'] - circle['r'] - 1, circle['y'] - circle['r'] - 1, circle['r'] * 2 + 2, circle['r'] * 2 + 2);
+		this.ctx.clearRect(circle['x'] - circle['r'] - 1, circle['y'] - circle['r'] - 1, circle['r'] * 2 + 2, (circle['r'] * 2 + 2) * 1.3);
 	}
 	
 	erase(all: boolean) {
@@ -95,6 +106,10 @@ export class CanvaComponent implements OnInit {
 			this.clear(this.circles[this.selected]);
 	}
 	
+	scaleFont() {
+		this.ctx.font = this.fontSize.toString() + 'px serif';
+	}
+	
 	drawCircles() {
 		//Affiche tous les cercles
 		this.circles.forEach((circle) => {
@@ -103,6 +118,7 @@ export class CanvaComponent implements OnInit {
 			this.ctx.arc(circle['x'], circle['y'], circle['r'], 0, Math.PI * 2);
 			this.ctx.stroke();
 			this.ctx.fill();
+			this.ctx.strokeText(circle['text'], circle['x'], circle['y'] + circle['r'] * 1.3, circle['r'] * 2);
 		});
 	}
 	
@@ -127,7 +143,7 @@ export class CanvaComponent implements OnInit {
 	
 	select(event: any) {
 		//Tente de sélectionné un cercle là où il y a eu un click
-		this.findCircle(event.x, event.y-170);
+		this.findCircle(event.x, event.y-this.shift);
 	}
 	
 	move(event: any) {
@@ -136,7 +152,7 @@ export class CanvaComponent implements OnInit {
 			this.erase(this.selected == -1);
 			if (this.selected != -1) {
 				this.circles[this.selected]['x'] = event.x;
-				this.circles[this.selected]['y'] = event.y - 170;
+				this.circles[this.selected]['y'] = event.y - this.shift;
 			} else {
 				if (this.previous != null)
 					for (let i = 0; i < this.circles.length; i++) {
