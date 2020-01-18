@@ -32,6 +32,7 @@ export class CanvaComponent implements OnInit {
 	loops: any[] = [];
 	nextLoopId: number = 0;
 	zoom: number = 0;
+	baseRadius = 30;
 
   constructor(private networkService: NetworkService) { }
 
@@ -65,21 +66,30 @@ export class CanvaComponent implements OnInit {
 				if (shift > 0 || y.circles[i]['r'] > 2)
 					y.circles[i]['r'] += shift;
 				
-			for (let i = 0; i < y.circles.length-1; i++)
-				for (let j = i+1; j < y.circles.length; j++) {
-					if (shift > 0 || y.circles[i]['r'] > 2 && y.circles[j]['r'] > 2) {
-						const circle1 = y.circles[i];
-						const circle2 = y.circles[j];
-						const vectX = circle2['x'] - circle1['x'];
-						const vectY = circle2['y'] - circle1['y'];
-						const angle = Math.atan(vectY / vectX)
-						y.circles[i]['x'] += shift * (Math.cos(angle)-1);
-						y.circles[i]['y'] += shift * (Math.sin(angle)-1);
-						y.circles[j]['x'] -= shift * (Math.cos(angle)+1);
-						y.circles[j]['y'] -= shift * (Math.sin(angle)+1);
-					}
-				}
+			let centerX = 0;
+			let centerY = 0;
+			y.circles.forEach((circle) => {
+				centerX += circle['x'];
+				centerY += circle['y'];
+			});
+			centerX /= y.circles.length;
+			centerY /= y.circles.length;
 				
+			for (let i = 0; i < y.circles.length; i++)
+				if (shift > 0 || y.circles[i]['r'] > 2) {
+					const circle1 = y.circles[i];
+					const vectX = centerX - circle1['x'];
+					const vectY = centerY - circle1['y'];
+					const angle = Math.atan(vectY / vectX);
+					const norm = y.distance(y.circles[i]['x'], y.circles[i]['y'], centerX, centerY)
+					const scale = norm / (y.baseRadius + y.zoom);
+					let side = 1;
+					if (circle1['x'] < centerX)
+						side = -1
+					const coef = shift * side * scale;
+					y.circles[i]['x'] += Math.cos(angle) * coef;
+					y.circles[i]['y'] += Math.sin(angle) * coef;
+				}
 			y.update();
 		}
 		
@@ -106,9 +116,9 @@ export class CanvaComponent implements OnInit {
 					id: this.nextCircleId++,
 					x: this.canvasElement.width/2,
 					y: this.canvasElement.height/2,
-					r: 30 + this.zoom,
+					r: this.baseRadius + this.zoom,
 					type: type,
-					text: 'new ' + type
+					name: 'new ' + type + ' ' + this.nextCircleId
 				});
 				this.networkService.unlink();
 			}
@@ -162,13 +172,13 @@ export class CanvaComponent implements OnInit {
 			this.ctx.arc(circle['x'], circle['y'], circle['r'], 0, Math.PI * 2);
 			this.ctx.stroke();
 			this.ctx.fill();
-			//Affichage du texte
+			//Affichage des liens
 			this.ctx.fillStyle = 'black';
-			this.ctx.fillText(circle['text'], circle['x'], circle['y'] + circle['r'] * 1.3, circle['r'] * 2);
+			this.ctx.fillText(circle['name'], circle['x'], circle['y'] + circle['r'] * 1.3, circle['r'] * 2);
 			this.ctx.closePath();
 		});
 		
-		//Affichage des liens
+		
 		this.links.forEach((link) => {
 			let circle1 = this.circles[link['from']];
 			let circle2 = this.circles[link['to']];
@@ -245,7 +255,7 @@ export class CanvaComponent implements OnInit {
 					}
 					this.loops.push({
 						id: this.nextLoopId,
-						name: 'Untitled loop',
+						name: 'untitled loop',
 						loop: way
 					});
 				}
