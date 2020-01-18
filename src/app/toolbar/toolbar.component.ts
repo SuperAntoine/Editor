@@ -32,6 +32,8 @@ export class ToolbarComponent implements OnInit {
   }
 	
 	link() {
+		if (this.editing)
+			this.networkService.toggleEdit();
 		if (this.linking)
 			this.networkService.unlink();
 		else
@@ -39,6 +41,8 @@ export class ToolbarComponent implements OnInit {
 	}
 	
 	edit() {
+		if (this.linking) 
+			this.networkService.unlink();
 		this.networkService.toggleEdit();
 	}
 	

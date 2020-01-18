@@ -102,6 +102,7 @@ export class NetworkService {
 	newNetwork() {
 		this.setNetwork();
 		this.unlink();
+		this.toggleEdit();
 		this.emitNewNetworkSubject();
 	}
 	
