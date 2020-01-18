@@ -172,13 +172,13 @@ export class CanvaComponent implements OnInit {
 			this.ctx.arc(circle['x'], circle['y'], circle['r'], 0, Math.PI * 2);
 			this.ctx.stroke();
 			this.ctx.fill();
-			//Affichage des liens
+			//Affichage du texte
 			this.ctx.fillStyle = 'black';
 			this.ctx.fillText(circle['name'], circle['x'], circle['y'] + circle['r'] * 1.3, circle['r'] * 2);
 			this.ctx.closePath();
 		});
 		
-		
+		//Affichage des liens
 		this.links.forEach((link) => {
 			let circle1 = this.circles[link['from']];
 			let circle2 = this.circles[link['to']];
