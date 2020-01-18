@@ -1,13 +1,16 @@
 <div class="btn-toolbar" role="toolbar">
-  <div class="btn-group mr-2" role="group">
-    <button class="btn btn-primary" (click)="addElement('station')">Add station</button>
-    <button class="btn btn-primary" (click)="addElement('shed')">Add shed</button>
-  </div>
-  <div class="btn-group" role="group">
-    <button class="btn" 
-            [ngClass]="{'btn-primary': !linking, 'btn-warning': linking}"
-            (click)="link()">
-        Add link
-    </button>
-  </div>
+    <div class="btn-group mr-2" role="group">
+        <button class="btn btn-primary" (click)="newNetwork()">New Network</button>
+    </div>
+    <div class="btn-group mr-2" role="group">
+        <button class="btn btn-primary" (click)="addElement('station')">Add station</button>
+        <button class="btn btn-primary" (click)="addElement('shed')">Add shed</button>
+    </div>
+    <div class="btn-group" role="group">
+        <button class="btn" 
+                [ngClass]="{'btn-primary': !linking, 'btn-warning': linking}"
+                (click)="link()">
+            Add link
+        </button>
+    </div>
 </div>

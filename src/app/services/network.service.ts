@@ -10,8 +10,31 @@ export class NetworkService {
 	linking: boolean;
 	newElementSubject = new Subject<string>();
 	newElement: string;
+	newNetworkSubject = new Subject();
 	
 	init() {
+		this.setNetwork();
+		this.linking = false;
+		this.emitLinkingSubject();
+	}
+	
+	emitNetworkSubject() {
+		this.networkSubject.next(this.network);
+	}
+	
+	emitLinkingSubject() {
+		this.linkingSubject.next(this.linking);
+	}
+	
+	emitNewElementSubject() {
+		this.newElementSubject.next(this.newElement);
+	}
+	
+	emitNewNetworkSubject() {
+		this.newNetworkSubject.next();
+	}
+	
+	setNetwork() {
 		this.network = {
 			name: 'Untitled network',
 			time: 0,
@@ -32,20 +55,6 @@ export class NetworkService {
 			bridges: []
 		};
 		this.emitNetworkSubject();
-		this.linking = false;
-		this.emitLinkingSubject();
-	}
-	
-	emitNetworkSubject() {
-		this.networkSubject.next(this.network);
-	}
-	
-	emitLinkingSubject() {
-		this.linkingSubject.next(this.linking);
-	}
-	
-	emitNewElementSubject() {
-		this.newElementSubject.next(this.newElement);
 	}
 	
 	updateNetwork(network: Object) {
@@ -66,6 +75,11 @@ export class NetworkService {
 	addElement(type: string) {
 		this.newElement = type;
 		this.emitNewElementSubject();
+	}
+	
+	newNetwork() {
+		this.setNetwork();
+		this.emitNewNetworkSubject();
 	}
 	
 }

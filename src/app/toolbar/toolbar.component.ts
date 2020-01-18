@@ -33,5 +33,9 @@ export class ToolbarComponent implements OnInit {
 	addElement(type: string) {
 		this.networkService.addElement(type);
 	}
+	
+	newNetwork() {
+		this.networkService.newNetwork();
+	}
 
 }

@@ -17,21 +17,22 @@ export class CanvaComponent implements OnInit {
 	networkSubscription: Subscription;
 	linkingSubscription: Subscription;
 	newElementSubscription: Subscription;
+	newNetworkSubscription: Subscription;
 	
 	network: Object; //Réseau
 	fontSize: number = 10; //Taille de la police
-	circles: any[] = []; //Liste des cercles
-	nextCircleId: number = 0; //Prochain id de cercle
-	selected: number = -1; //Vaut l'index du cercle sélectionné, -1 sinon
+	circles: any[]; //Liste des cercles
+	nextCircleId: number; //Prochain id de cercle
+	selected: number; //Vaut l'index du cercle sélectionné, -1 sinon
 	down: boolean = false; //Vrai s'il y a clique
 	previous: number[]; //Position précédente de la souris
 	linking: boolean; //Vaut vrai si un lien est entrain d'être créé
-	linkingFrom: number = -1; //Origine du lien
-	links: any[] = []; //Liste des liens
-	nextLinkId: number = 0; //Prochain id de lien
-	loops: any[] = []; //Liste des boucles 
-	nextLoopId: number = 0; //Prochain id de boucle
-	zoom: number = 0; //Zoom actuel
+	linkingFrom: number; //Origine du lien
+	links: any[]; //Liste des liens
+	nextLinkId: number; //Prochain id de lien
+	loops: any[]; //Liste des boucles 
+	nextLoopId: number; //Prochain id de boucle
+	zoom: number; //Zoom actuel
 	baseRadius = 30; //Rayon de base d'un cercle
 
   constructor(private networkService: NetworkService) { }
@@ -42,6 +43,7 @@ export class CanvaComponent implements OnInit {
 		this.ctx = this.canvas.nativeElement.getContext('2d');
 		this.ctx.textAlign = 'center';
 		
+		this.newNetwork();
 		//Ajout d'événements de la souris
 		let y = this;
 		
@@ -122,7 +124,25 @@ export class CanvaComponent implements OnInit {
 				this.networkService.unlink();
 			}
 		);
+		this.newNetworkSubscription = this.networkService.newNetworkSubject.subscribe(
+			() => {
+				y.newNetwork()
+			}
+		);
   }
+	
+	newNetwork() {
+		this.networkService.unlink();
+		this.selected = -1;
+		this.circles = [];
+		this.nextCircleId = 0;
+		this.links = [];
+		this.nextLinkId = 0;
+		this.loops = [];
+		this.nextLoopId = 0;
+		this.zoom = 0;
+		this.update();
+	}
 	
 	scaleFont() {
 		//Change la police d'écriture
