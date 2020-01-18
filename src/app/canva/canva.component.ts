@@ -118,7 +118,7 @@ export class CanvaComponent implements OnInit {
 					y: this.canvasElement.height/2,
 					r: this.baseRadius + this.zoom,
 					type: type,
-					name: 'new ' + type + ' ' + this.nextCircleId
+					name: 'new ' + type
 				});
 				this.networkService.unlink();
 			}
@@ -185,6 +185,17 @@ export class CanvaComponent implements OnInit {
 			this.ctx.beginPath();
 			this.ctx.moveTo(circle1['x'], circle1['y']);
 			this.ctx.lineTo(circle2['x'], circle2['y']);
+			const vectX = circle2['x'] - circle1['x'];
+			const vectY = circle2['y'] - circle1['y'];
+			const angle = Math.atan(vectY / vectX) + 5 * Math.PI / 6;
+			let side = 1;
+			if (circle2['x'] < circle1['x'])
+				side = -1
+			const coef = (20 + this.zoom) * side;
+			this.ctx.lineTo(circle2['x'] + Math.cos(angle) * coef, circle2['y'] + Math.sin(angle) * coef);
+			this.ctx.stroke()
+			this.ctx.moveTo(circle2['x'], circle2['y']);
+			this.ctx.lineTo(circle2['x'] + Math.cos(angle + Math.PI/3) * coef, circle2['y'] + Math.sin(angle + Math.PI/3) * coef);
 			this.ctx.stroke();
 			this.ctx.closePath();
 		});
@@ -285,7 +296,6 @@ export class CanvaComponent implements OnInit {
 		}
 		this.networkService.unlink();
 		this.checkForLoops();
-		console.log(this.loops);
 	}
 	
 	distance(x1: number, y1: number, x2: number, y2: number) {
@@ -325,7 +335,7 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	select(event: any) {
-		//Tente de sélectionné un cercle là où il y a eu un click
+		//Tente de sélectionner un cercle là où il y a eu un click
 		const shift = this.getShift();
 		this.findCircle(event.x - shift['x'], event.y - shift['y']);
 		this.update();
