@@ -400,6 +400,8 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	convertNetwork() {
+		this.network['loops'] = [];
+		this.network['bridges'] = [];
 		for (let i = 0; i < this.loops.length; i++) {
 			const loop = this.loops[i];
 			this.network['loops'].push({
