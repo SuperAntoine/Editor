@@ -13,5 +13,10 @@
                 (click)="link()">
             Add link
         </button>
+        <button class="btn" 
+                [ngClass]="{'btn-primary': !editing, 'btn-warning': editing}"
+                (click)="edit()">
+            Edit
+        </button>
     </div>
 </div>

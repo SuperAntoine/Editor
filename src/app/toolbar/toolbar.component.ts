@@ -11,6 +11,8 @@ export class ToolbarComponent implements OnInit {
 	
 	linkingSubscription: Subscription;
 	linking: boolean;
+	editingSubscription: Subscription;
+	editing: boolean
 
   constructor(private networkService: NetworkService) { }
 
@@ -21,6 +23,12 @@ export class ToolbarComponent implements OnInit {
 			}
 		);
 		this.networkService.emitLinkingSubject();
+		this.editingSubscription = this.networkService.editingSubject.subscribe(
+			(editing: boolean) => {
+				this.editing = editing;
+			}
+		);
+		this.networkService.emitEditingSubject();
   }
 	
 	link() {
@@ -28,6 +36,10 @@ export class ToolbarComponent implements OnInit {
 			this.networkService.unlink();
 		else
 			this.networkService.link();
+	}
+	
+	edit() {
+		this.networkService.toggleEdit();
 	}
 	
 	addElement(type: string) {
