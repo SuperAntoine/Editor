@@ -29,10 +29,10 @@ export class CanvaComponent implements OnInit {
 	linkingFrom: number = -1; //Origine du lien
 	links: any[] = []; //Liste des liens
 	nextLinkId: number = 0; //Prochain id de lien
-	loops: any[] = [];
-	nextLoopId: number = 0;
-	zoom: number = 0;
-	baseRadius = 30;
+	loops: any[] = []; //Liste des boucles 
+	nextLoopId: number = 0; //Prochain id de boucle
+	zoom: number = 0; //Zoom actuel
+	baseRadius = 30; //Rayon de base d'un cercle
 
   constructor(private networkService: NetworkService) { }
 
@@ -75,21 +75,20 @@ export class CanvaComponent implements OnInit {
 			centerX /= y.circles.length;
 			centerY /= y.circles.length;
 				
-			for (let i = 0; i < y.circles.length; i++)
-				if (shift > 0 || y.circles[i]['r'] > 2) {
-					const circle1 = y.circles[i];
-					const vectX = centerX - circle1['x'];
-					const vectY = centerY - circle1['y'];
-					const angle = Math.atan(vectY / vectX);
-					const norm = y.distance(y.circles[i]['x'], y.circles[i]['y'], centerX, centerY)
+			for (let i = 0; i < y.circles.length; i++) {
+				const circle = y.circles[i];
+				if (shift > 0 || circle['r'] > 2) {
+					const angle = y.angle(circle['x'], circle['y'], centerX, centerY);
+					const norm = y.distance(circle['x'], circle['y'], centerX, centerY)
 					const scale = norm / (y.baseRadius + y.zoom);
 					let side = 1;
-					if (circle1['x'] < centerX)
+					if (circle['x'] < centerX)
 						side = -1
 					const coef = shift * side * scale;
 					y.circles[i]['x'] += Math.cos(angle) * coef;
 					y.circles[i]['y'] += Math.sin(angle) * coef;
 				}
+			}
 			y.update();
 		}
 		
@@ -187,9 +186,7 @@ export class CanvaComponent implements OnInit {
 			this.ctx.moveTo(circle1['x'], circle1['y']);
 			this.ctx.lineTo(circle2['x'], circle2['y']);
 			//Calculs
-			const vectX = circle2['x'] - circle1['x'];
-			const vectY = circle2['y'] - circle1['y'];
-			const angle = Math.atan(vectY / vectX) + 5 * Math.PI / 6;
+			const angle = this.angle(circle1['x'], circle1['y'], circle2['x'], circle2['y']) + 5 * Math.PI / 6;
 			let side = 1;
 			if (circle2['x'] < circle1['x'])
 				side = -1
@@ -301,6 +298,12 @@ export class CanvaComponent implements OnInit {
 		this.checkForLoops();
 	}
 	
+	angle(x1: number, y1: number, x2: number, y2: number) {
+		const vectX = x2 - x1;
+		const vectY = y2 - y1;
+		return Math.atan(vectY / vectX);
+	}
+	
 	distance(x1: number, y1: number, x2: number, y2: number) {
 		//Renvoie la distance entre deux points
 		return Math.sqrt((x2-x1)**2 + (y2-y1)**2);
@@ -348,17 +351,18 @@ export class CanvaComponent implements OnInit {
 		//Déplace tous les cercles ou seulement celui sélectionné
 		if (this.down) {
 			const shift = this.getShift();
-			if (this.selected != -1) {
-				this.circles[this.selected]['x'] = event.x - shift['x'];
-				this.circles[this.selected]['y'] = event.y - shift['y'];
-			} else {
-				if (this.previous != null)
+			if (this.previous != null) {
+				if (this.selected != -1) {
+					this.circles[this.selected]['x'] += event.x - this.previous[0];
+					this.circles[this.selected]['y'] += event.y - this.previous[1];
+				} else {
 					for (let i = 0; i < this.circles.length; i++) {
 						this.circles[i]['x'] += event.x - this.previous[0];
 						this.circles[i]['y'] += event.y - this.previous[1];
 					}
-				this.previous = [event.x, event.y];
+				}
 			}
+			this.previous = [event.x, event.y];
 			this.update();
 		}
 	}
