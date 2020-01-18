@@ -5,7 +5,6 @@
         <app-parameters></app-parameters>
     </div>
     <div class="container">
-        <button (click)="exportJSON()" class="btn btn-success">Export</button>
         <a [href]="fileUrl" download="network.json" *ngIf="fileUrl">Download</a>
     </div>
 </div>

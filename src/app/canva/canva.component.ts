@@ -18,6 +18,7 @@ export class CanvaComponent implements OnInit {
 	linkingSubscription: Subscription;
 	newElementSubscription: Subscription;
 	newNetworkSubscription: Subscription;
+	convertSubscription: Subscription;
 	
 	network: Object; //Réseau
 	fontSize: number = 10; //Taille de la police
@@ -127,6 +128,12 @@ export class CanvaComponent implements OnInit {
 		this.newNetworkSubscription = this.networkService.newNetworkSubject.subscribe(
 			() => {
 				y.newNetwork()
+			}
+		);
+		this.convertSubscription = this.networkService.convertSubject.subscribe(
+			() => {
+				y.convertNetwork();
+				y.networkService.export();
 			}
 		);
   }
@@ -390,6 +397,53 @@ export class CanvaComponent implements OnInit {
 		//Désélectionne tout
 		this.selected = -1;
 		this.previous = null;
+	}
+	
+	convertNetwork() {
+		for (let i = 0; i < this.loops.length; i++) {
+			const loop = this.loops[i];
+			this.network['loops'].push({
+				name: loop['name'],
+				elements: [],
+				sections: [],
+				pods: []
+			});
+			loop['loop'].forEach((linkId) => {
+				const link = this.getLink(linkId);
+				const circle = this.getCircle(link['from']);
+				let elt = {
+					type: circle.type,
+					name: circle.name,
+					x: circle.x,
+					y: circle.y
+				}
+				if (elt['type'] == 'station') {
+					elt['station_type'] = 1,
+					elt['travelers'] = {
+						count: 0, 
+						average_waiting_time: 0, 
+						all_time_count: 0
+					}
+					elt['pods'] = {
+						max: 4,
+						count: 0
+					}
+				} else if (elt['type'] == 'shed') {
+					elt['pods'] = {
+						max: 50,
+						count: 50
+					}
+				}
+				this.network['loops'][i]['elements'].push(elt);
+				this.network['loops'][i]['sections'].push({
+					speed: 16.67,
+					path: {
+						type: 'line'
+					}
+				});
+			});
+		}
+		this.networkService.updateNetwork(this.network);
 	}
 
 }

@@ -11,6 +11,7 @@ import { NetworkService } from '../services/network.service';
 export class EditorComponent implements OnInit {
 
 	networkSubscription: Subscription;
+	exportSubscription: Subscription;
 	network: Object;
 	fileUrl;
 
@@ -24,6 +25,11 @@ export class EditorComponent implements OnInit {
 			}
 		);
 		this.networkService.emitNetworkSubject();
+		this.exportSubscription = this.networkService.exportSubject.subscribe(
+			() => {
+				this.exportJSON();
+			}
+		);
   }
 	
 	exportJSON() {

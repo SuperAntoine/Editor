@@ -11,6 +11,8 @@ export class NetworkService {
 	newElementSubject = new Subject<string>();
 	newElement: string;
 	newNetworkSubject = new Subject();
+	convertSubject = new Subject();
+	exportSubject = new Subject();
 	
 	init() {
 		this.setNetwork();
@@ -31,6 +33,14 @@ export class NetworkService {
 	
 	emitNewNetworkSubject() {
 		this.newNetworkSubject.next();
+	}
+	
+	emitConvertSubject() {
+		this.convertSubject.next();
+	}
+	
+	emitExportSubject() {
+		this.exportSubject.next();
 	}
 	
 	setNetwork() {
@@ -80,6 +90,14 @@ export class NetworkService {
 		this.setNetwork();
 		this.unlink();
 		this.emitNewNetworkSubject();
+	}
+	
+	convert() {
+		this.emitConvertSubject();
+	}
+	
+	export() {
+		this.emitExportSubject();
 	}
 	
 }

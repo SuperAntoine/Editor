@@ -37,5 +37,9 @@ export class ToolbarComponent implements OnInit {
 	newNetwork() {
 		this.networkService.newNetwork();
 	}
+	
+	export() {
+		this.networkService.convert();
+	}
 
 }
