@@ -132,7 +132,6 @@ export class CanvaComponent implements OnInit {
   }
 	
 	newNetwork() {
-		this.networkService.unlink();
 		this.selected = -1;
 		this.circles = [];
 		this.nextCircleId = 0;

@@ -14,8 +14,7 @@ export class NetworkService {
 	
 	init() {
 		this.setNetwork();
-		this.linking = false;
-		this.emitLinkingSubject();
+		this.unlink()
 	}
 	
 	emitNetworkSubject() {
@@ -79,6 +78,7 @@ export class NetworkService {
 	
 	newNetwork() {
 		this.setNetwork();
+		this.unlink();
 		this.emitNewNetworkSubject();
 	}
 	
