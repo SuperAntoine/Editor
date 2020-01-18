@@ -183,8 +183,10 @@ export class CanvaComponent implements OnInit {
 			let circle1 = this.circles[link['from']];
 			let circle2 = this.circles[link['to']];
 			this.ctx.beginPath();
+			//Affichage de la ligne
 			this.ctx.moveTo(circle1['x'], circle1['y']);
 			this.ctx.lineTo(circle2['x'], circle2['y']);
+			//Calculs
 			const vectX = circle2['x'] - circle1['x'];
 			const vectY = circle2['y'] - circle1['y'];
 			const angle = Math.atan(vectY / vectX) + 5 * Math.PI / 6;
@@ -192,6 +194,7 @@ export class CanvaComponent implements OnInit {
 			if (circle2['x'] < circle1['x'])
 				side = -1
 			const coef = (20 + this.zoom) * side;
+			//Affichage des flèches
 			this.ctx.lineTo(circle2['x'] + Math.cos(angle) * coef, circle2['y'] + Math.sin(angle) * coef);
 			this.ctx.stroke()
 			this.ctx.moveTo(circle2['x'], circle2['y']);
