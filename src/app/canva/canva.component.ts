@@ -20,7 +20,7 @@ export class CanvaComponent implements OnInit {
 	editedSubscription: Subscription;
 	newElementSubscription: Subscription;
 	newNetworkSubscription: Subscription;
-	convertSubscription: Subscription
+	convertSubscription: Subscription;
 	
 	network: Object; //Réseau
 	fontSize: number = 10; //Taille de la police
@@ -131,6 +131,9 @@ export class CanvaComponent implements OnInit {
 		);
 		this.newElementSubscription = this.networkService.newElementSubject.subscribe(
 			(type: string) => {
+				let max = 4
+				if (type == 'shed')
+					max = 50
 				this.circles.push({
 					id: this.nextCircleId++,
 					x: this.canvasElement.width/2,
@@ -138,7 +141,8 @@ export class CanvaComponent implements OnInit {
 					r: this.baseRadius + this.zoom,
 					type: type,
 					name: 'new ' + type,
-					station_type: 1
+					station_type: 1,
+					pods: { max: max }
 				});
 				this.networkService.unlink();
 			}
@@ -446,15 +450,9 @@ export class CanvaComponent implements OnInit {
 						average_waiting_time: 0, 
 						all_time_count: 0
 					}
-					elt['pods'] = {
-						max: 4,
-						count: 0
-					}
+					elt['pods']['count'] = 0;
 				} else if (elt['type'] == 'shed') {
-					elt['pods'] = {
-						max: 50,
-						count: 50
-					}
+					elt['pods']['count'] = circle['pods']['max'];
 				}
 				this.network['loops'][i]['elements'].push(elt);
 				this.network['loops'][i]['sections'].push({
