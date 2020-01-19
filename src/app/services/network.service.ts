@@ -10,6 +10,9 @@ export class NetworkService {
 	linking: boolean;
 	editingSubject = new Subject<boolean>();
 	editing: boolean;
+	editedElementSubject = new Subject<Object>();
+	editedElement: Object;
+	editedSubject = new Subject<Object>();
 	newElementSubject = new Subject<string>();
 	newElement: string;
 	newNetworkSubject = new Subject();
@@ -33,6 +36,14 @@ export class NetworkService {
 	
 	emitEditingSubject() {
 		this.editingSubject.next(this.editing);
+	}
+	
+	emitEditedElementSubject() {
+		this.editedElementSubject.next(this.editedElement);
+	}
+	
+	emitEditedSubject(elt: Object) {
+		this.editedSubject.next(elt);
 	}
 	
 	emitNewElementSubject() {
@@ -91,7 +102,14 @@ export class NetworkService {
 	
 	toggleEdit() {
 		this.editing = !this.editing;
+		if (!this.editing)
+			this.editElement(null);
 		this.emitEditingSubject();
+	}
+	
+	editElement(elt: Object) {
+		this.editedElement = elt;
+		this.emitEditedElementSubject();
 	}
 	
 	addElement(type: string) {
@@ -102,7 +120,8 @@ export class NetworkService {
 	newNetwork() {
 		this.setNetwork();
 		this.unlink();
-		this.toggleEdit();
+		if (this.editing)
+			this.toggleEdit();
 		this.emitNewNetworkSubject();
 	}
 	

@@ -12,6 +12,8 @@ export class ParametersComponent implements OnInit {
 
 	networkSubscription: Subscription;
 	network: Object;
+	editedElementSubscription: Subscription;
+	editedElement: Object;
 
   constructor(private networkService: NetworkService) { }
 
@@ -22,10 +24,21 @@ export class ParametersComponent implements OnInit {
 			}
 		);
 		this.networkService.emitNetworkSubject();
+		this.editedElementSubscription = this.networkService.editedElementSubject.subscribe(
+			(editedElement: Object) => {
+				this.editedElement = editedElement;
+			}
+		);
   }
 
 	onSave(form: NgForm) {
-		this.networkService.updateNetwork(this.network);
+		if (this.editedElement == null)
+			this.networkService.updateNetwork(this.network);
+		else {
+			this.networkService.emitEditedSubject(this.editedElement);
+			this.networkService.toggleEdit();
+			this.editedElement = null;
+		}
 	}
 
 }

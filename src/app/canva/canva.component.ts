@@ -16,9 +16,11 @@ export class CanvaComponent implements OnInit {
 	
 	networkSubscription: Subscription;
 	linkingSubscription: Subscription;
+	editingSubscription: Subscription;
+	editedSubscription: Subscription;
 	newElementSubscription: Subscription;
 	newNetworkSubscription: Subscription;
-	convertSubscription: Subscription;
+	convertSubscription: Subscription
 	
 	network: Object; //Réseau
 	fontSize: number = 10; //Taille de la police
@@ -30,6 +32,7 @@ export class CanvaComponent implements OnInit {
 	linking: boolean; //Vaut vrai si un lien est entrain d'être créé
 	linkingFrom: number; //Origine du lien
 	links: any[]; //Liste des liens
+	editing: boolean;
 	nextLinkId: number; //Prochain id de lien
 	loops: any[]; //Liste des boucles 
 	nextLoopId: number; //Prochain id de boucle
@@ -112,6 +115,20 @@ export class CanvaComponent implements OnInit {
 			}
 		);
 		this.networkService.emitLinkingSubject();
+		this.editingSubscription = this.networkService.editingSubject.subscribe(
+			(editing: boolean) => {
+				this.editing = editing;
+			}
+		);
+		this.networkService.emitEditingSubject();
+		this.editedSubscription = this.networkService.editedSubject.subscribe(
+			(elt: Object) => {
+				for (let i = 0; i < this.circles.length; i++) 
+					if (this.circles[i]['id'] == elt['id'])
+						this.circles[i] = elt;
+				this.update();
+			}
+		);
 		this.newElementSubscription = this.networkService.newElementSubject.subscribe(
 			(type: string) => {
 				this.circles.push({
@@ -120,7 +137,8 @@ export class CanvaComponent implements OnInit {
 					y: this.canvasElement.height/2,
 					r: this.baseRadius + this.zoom,
 					type: type,
-					name: 'new ' + type
+					name: 'new ' + type,
+					station_type: 1
 				});
 				this.networkService.unlink();
 			}
@@ -346,7 +364,9 @@ export class CanvaComponent implements OnInit {
 						this.linkingFrom = i;
 					else 
 						this.createLink(this.linkingFrom, circle['id']);
-				} else
+				} else if (this.editing)
+					this.networkService.editElement(circle);
+				else
 					this.selected = i;
 				found = true;
 			}
@@ -375,7 +395,7 @@ export class CanvaComponent implements OnInit {
 	
 	move(event: any) {
 		//Déplace tous les cercles ou seulement celui sélectionné
-		if (this.down) {
+		if (this.down && !this.linking && !this.editing) {
 			const shift = this.getShift();
 			if (this.previous != null) {
 				if (this.selected != -1) {
@@ -417,10 +437,10 @@ export class CanvaComponent implements OnInit {
 					type: circle.type,
 					name: circle.name,
 					x: circle.x,
-					y: circle.y
+					y: circle.y,
+					station_type: circle.station_type
 				}
 				if (elt['type'] == 'station') {
-					elt['station_type'] = 1,
 					elt['travelers'] = {
 						count: 0, 
 						average_waiting_time: 0, 

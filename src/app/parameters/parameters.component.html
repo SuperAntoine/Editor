@@ -1,18 +1,31 @@
 <form (ngSubmit)="onSave(f)" #f="ngForm">
-    <h2 class="text-center">Network parameters</h2>
-	<div class="form-group">
-        <label for="name">Name</label>
-		<input type="text" id="name" class="form-control" name="name" [(ngModel)]="network['name']" required>
-        <label for="time">Starting time (in s)</label>
-		<input type="number" id="time" class="form-control" name="time" [(ngModel)]="network['time']" required>
-        <label for="margin_min">Minimum margin (in m)</label>
-        <input type="number" id="margin_min" class="form-control" name="margin_min" [(ngModel)]="network['margin_min']" required>
-        <label for="max_speed">Maximum speed (in m/s)</label>
-        <input type="number" id="max_speed" class="form-control" name="max_speed" [(ngModel)]="network['max_speed']" required>
-        <label for="pod_size">Pod size (in m)</label>
-        <input type="number" id="pod_size" class="form-control" name="pod_size" [(ngModel)]="network['pod_size']" required>
-        <label for="places_number">Number of places</label>
-        <input type="number" id="places_number" class="form-control" name="places_number" [(ngModel)]="network['places_number']" required>
-        <button type="submit" class="btn btn-primary mt-2" [disabled]="f.invalid">Save</button>
-	</div>
+    <div *ngIf="editedElement == null">
+        <h2 class="text-center">{{ network['name'] }} parameters</h2>
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" class="form-control" name="name" [(ngModel)]="network['name']" required>
+            <label for="time">Starting time (in s)</label>
+            <input type="number" id="time" class="form-control" name="time" min="0" [(ngModel)]="network['time']" required>
+            <label for="margin_min">Minimum margin (in m)</label>
+            <input type="number" id="margin_min" class="form-control" name="margin_min" min="0" [(ngModel)]="network['margin_min']" required>
+            <label for="max_speed">Maximum speed (in m/s)</label>
+            <input type="number" id="max_speed" class="form-control" name="max_speed" min="0" [(ngModel)]="network['max_speed']" required>
+            <label for="pod_size">Pod size (in m)</label>
+            <input type="number" id="pod_size" class="form-control" name="pod_size" min="0" [(ngModel)]="network['pod_size']" required>
+            <label for="places_number">Number of places</label>
+            <input type="number" id="places_number" class="form-control" name="places_number" min="0" [(ngModel)]="network['places_number']" required>
+        </div>
+    </div>
+    <div *ngIf="editedElement != null">
+        <h2 class="text-center">{{ editedElement['name'] }} parameters</h2>
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" class="form-control" name="name" [(ngModel)]="editedElement['name']" required>
+            <div *ngIf="editedElement['type'] == 'station'">
+                <label for="station_type">Station type</label>
+                <input type="number" id="station_type" class="form-control" name="station_type" min="1" max="3" [(ngModel)]="editedElement['station_type']" required>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-2" [disabled]="f.invalid">Save</button>
 </form>
