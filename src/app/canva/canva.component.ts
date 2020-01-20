@@ -22,7 +22,7 @@ export class CanvaComponent implements OnInit {
 	newNetworkSubscription: Subscription;
 	convertSubscription: Subscription;
 	
-	network: Object; //Réseau
+	network: any; //Réseau
 	fontSize: number = 10; //Taille de la police
 	circles: any[]; //Liste des cercles
 	nextCircleId: number; //Prochain id de cercle
@@ -69,30 +69,30 @@ export class CanvaComponent implements OnInit {
 			}
 			
 			for (let i = 0; i < y.circles.length; i++) 
-				if (shift > 0 || y.circles[i]['r'] > 2)
-					y.circles[i]['r'] += shift;
+				if (shift > 0 || y.circles[i].r > 2)
+					y.circles[i].r += shift;
 				
 			let centerX = 0;
 			let centerY = 0;
 			y.circles.forEach((circle) => {
-				centerX += circle['x'];
-				centerY += circle['y'];
+				centerX += circle.x;
+				centerY += circle.y;
 			});
 			centerX /= y.circles.length;
 			centerY /= y.circles.length;
 				
 			for (let i = 0; i < y.circles.length; i++) {
 				const circle = y.circles[i];
-				if (shift > 0 || circle['r'] > 2) {
-					const angle = y.angle(circle['x'], circle['y'], centerX, centerY);
-					const norm = y.distance(circle['x'], circle['y'], centerX, centerY)
+				if (shift > 0 || circle.r > 2) {
+					const angle = y.angle(circle.x, circle.y, centerX, centerY);
+					const norm = y.distance(circle.x, circle.y, centerX, centerY)
 					const scale = norm / (y.baseRadius + y.zoom);
 					let side = 1;
-					if (circle['x'] < centerX)
+					if (circle.x < centerX)
 						side = -1
 					const coef = shift * side * scale;
-					y.circles[i]['x'] += Math.cos(angle) * coef;
-					y.circles[i]['y'] += Math.sin(angle) * coef;
+					y.circles[i].x += Math.cos(angle) * coef;
+					y.circles[i].x += Math.sin(angle) * coef;
 				}
 			}
 			y.update();
@@ -122,9 +122,9 @@ export class CanvaComponent implements OnInit {
 		);
 		this.networkService.emitEditingSubject();
 		this.editedSubscription = this.networkService.editedSubject.subscribe(
-			(elt: Object) => {
+			(elt: any) => {
 				for (let i = 0; i < this.circles.length; i++) 
-					if (this.circles[i]['id'] == elt['id'])
+					if (this.circles[i].id == elt.id)
 						this.circles[i] = elt;
 				this.update();
 			}
@@ -180,7 +180,7 @@ export class CanvaComponent implements OnInit {
 	getCircle(id: number) {
 		//Renvoie un cercle selon l'id
 		for (let i = 0; i < this.circles.length; i++)
-			if (this.circles[i]['id'] == id)
+			if (this.circles[i].id == id)
 				return this.circles[i];
 		return null;
 	}
@@ -188,7 +188,7 @@ export class CanvaComponent implements OnInit {
 	getLink(id: number) {
 		//Renvoie un lien selon l'id
 		for (let i = 0; i < this.links.length; i++)
-			if (this.links[i]['id'] == id)
+			if (this.links[i].id == id)
 				return this.links[i];
 		return null;
 	}
@@ -200,10 +200,10 @@ export class CanvaComponent implements OnInit {
 		//Affichage des cerlces
 		this.circles.forEach((circle) => {
 			//Couleur
-			if (circle['id'] == this.linkingFrom)
+			if (circle.id == this.linkingFrom)
 				this.ctx.fillStyle = 'yellow';
 			else
-				switch(circle['type']) {
+				switch(circle.type) {
 					case 'station': {
 						this.ctx.fillStyle = 'red';
 						break;
@@ -216,61 +216,61 @@ export class CanvaComponent implements OnInit {
 				
 			//Traçage du cercle
 			this.ctx.beginPath();
-			this.ctx.arc(circle['x'], circle['y'], circle['r'], 0, Math.PI * 2);
+			this.ctx.arc(circle.x, circle.y, circle.r, 0, Math.PI * 2);
 			this.ctx.stroke();
 			this.ctx.fill();
 			//Affichage du texte
 			this.ctx.fillStyle = 'black';
-			this.ctx.fillText(circle['name'], circle['x'], circle['y'] + circle['r'] * 1.3, circle['r'] * 2);
+			this.ctx.fillText(circle.name, circle.x, circle.y + circle.r * 1.3, circle.r * 2);
 			this.ctx.closePath();
 		});
 		
 		//Affichage des liens
 		this.links.forEach((link) => {
-			let circle1 = this.circles[link['from']];
-			let circle2 = this.circles[link['to']];
+			let circle1 = this.circles[link.from];
+			let circle2 = this.circles[link.to];
 			this.ctx.beginPath();
 			//Affichage de la ligne
-			this.ctx.moveTo(circle1['x'], circle1['y']);
-			this.ctx.lineTo(circle2['x'], circle2['y']);
+			this.ctx.moveTo(circle1.x, circle1.y);
+			this.ctx.lineTo(circle2.x, circle2.y);
 			//Calculs
-			const angle = this.angle(circle1['x'], circle1['y'], circle2['x'], circle2['y']) + 5 * Math.PI / 6;
+			const angle = this.angle(circle1.x, circle1.y, circle2.x, circle2.y) + 5 * Math.PI / 6;
 			let side = 1;
-			if (circle2['x'] < circle1['x'])
+			if (circle2.x < circle1.x)
 				side = -1
 			const coef = (20 + this.zoom) * side;
 			//Affichage des flèches
-			this.ctx.lineTo(circle2['x'] + Math.cos(angle) * coef, circle2['y'] + Math.sin(angle) * coef);
+			this.ctx.lineTo(circle2.x + Math.cos(angle) * coef, circle2.y + Math.sin(angle) * coef);
 			this.ctx.stroke()
-			this.ctx.moveTo(circle2['x'], circle2['y']);
-			this.ctx.lineTo(circle2['x'] + Math.cos(angle + Math.PI/3) * coef, circle2['y'] + Math.sin(angle + Math.PI/3) * coef);
+			this.ctx.moveTo(circle2.x, circle2.y);
+			this.ctx.lineTo(circle2.x + Math.cos(angle + Math.PI/3) * coef, circle2.y + Math.sin(angle + Math.PI/3) * coef);
 			this.ctx.stroke();
 			this.ctx.closePath();
 		});
 		
 		//Affiche des boucles
 		this.loops.forEach((loop) => {
-			const n = loop['loop'].length;
+			const n = loop.loop.length;
 			let centerX = 0;
 			let centerY = 0;
-			loop['loop'].forEach((linkId) => {
+			loop.loop.forEach((linkId) => {
 				const link = this.getLink(linkId);
-				const circle = this.getCircle(link['from']);
-				centerX += circle['x'];
-				centerY += circle['y'];
+				const circle = this.getCircle(link.from);
+				centerX += circle.x;
+				centerY += circle.y;
 			});
 			centerX /= n;
 			centerY /= n;
 			this.ctx.beginPath();
 			this.ctx.fillStyle = 'black';
-			this.ctx.fillText(loop['name'], centerX, centerY);
+			this.ctx.fillText(loop.name, centerX, centerY);
 		});
 	}
 	
 	findLink(id: number) {
 		//Renvoie l'indice d'un lien selon l'id
 		for (let i = 0; i < this.links.length; i++)
-			if (this.links[i]['from'] == id)
+			if (this.links[i].from == id)
 				return i;
 		return -1;
 	}
@@ -283,13 +283,13 @@ export class CanvaComponent implements OnInit {
 				let stop = false;
 				let isLoop = false;
 				let links = Object.assign([], this.links);
-				let next = link['to'];
+				let next = link.to;
 				let way = [i];
-				const id = link['from'];
+				const id = link.from;
 				
 				for (let j = 0; j < links.length; j++)
-					links[j]['checked'] = false;
-				links[i]['checked'] = true;
+					links[j].checked = false;
+				links[i].checked = true;
 				
 				while (!stop && !isLoop) {
 					//On cherche le prochain lien
@@ -297,20 +297,20 @@ export class CanvaComponent implements OnInit {
 					if (nextLink == -1)
 						//S'il n'existe pas la boucle n'est pas fermée
 						stop = true;
-					else if (links[nextLink]['checked'])
+					else if (links[nextLink].checked)
 						//Si le lien est déjà marqué, on est revenu au point de départ
 						isLoop = true;
 					else {
 						//Sinon, on ajoute le lien au chemin et on passe au suivant
 						way.push(nextLink);
-						next = links[nextLink]['to'];
+						next = links[nextLink].to;
 					}
 				}
 				if (isLoop) {
 					let loop = []
 					for (let j of way) {
 						this.links[j].inLoop = true;
-						loop.push(this.links[j]['from']);
+						loop.push(this.links[j].from);
 					}
 					this.loops.push({
 						id: this.nextLoopId,
@@ -326,7 +326,7 @@ export class CanvaComponent implements OnInit {
 		//Détecte si un les cercles ne sont pas déjà origine ou destination d'un lien
 		for (let i = 0; i < this.links.length; i++) {
 			const link = this.links[i];
-			if (link['from'] == id1 || link['to'] == id2)
+			if (link.from == id1 || link.to == id2)
 				return true;
 		}
 		return false;
@@ -362,12 +362,12 @@ export class CanvaComponent implements OnInit {
 		let found: boolean = false;
 		for (let i = 0; i < this.circles.length; i++) {
 		  const circle = this.circles[i];
-			if (this.distance(circle['x'], circle['y'], x, y) < circle['r']) {
+			if (this.distance(circle.x, circle.y, x, y) < circle.r) {
 				if (this.linking) {
 					if (this.linkingFrom == -1)
 						this.linkingFrom = i;
 					else 
-						this.createLink(this.linkingFrom, circle['id']);
+						this.createLink(this.linkingFrom, circle.id);
 				} else if (this.editing)
 					this.networkService.editElement(circle);
 				else
@@ -393,7 +393,7 @@ export class CanvaComponent implements OnInit {
 	select(event: any) {
 		//Tente de sélectionner un cercle là où il y a eu un click
 		const shift = this.getShift();
-		this.findCircle(event.x - shift['x'], event.y - shift['y']);
+		this.findCircle(event.x - shift.x, event.y - shift.y);
 		this.update();
 	}
 	
@@ -403,12 +403,12 @@ export class CanvaComponent implements OnInit {
 			const shift = this.getShift();
 			if (this.previous != null) {
 				if (this.selected != -1) {
-					this.circles[this.selected]['x'] += event.x - this.previous[0];
-					this.circles[this.selected]['y'] += event.y - this.previous[1];
+					this.circles[this.selected].x += event.x - this.previous[0];
+					this.circles[this.selected].y += event.y - this.previous[1];
 				} else {
 					for (let i = 0; i < this.circles.length; i++) {
-						this.circles[i]['x'] += event.x - this.previous[0];
-						this.circles[i]['y'] += event.y - this.previous[1];
+						this.circles[i].x += event.x - this.previous[0];
+						this.circles[i].y += event.y - this.previous[1];
 					}
 				}
 			}
@@ -424,19 +424,19 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	convertNetwork() {
-		this.network['loops'] = [];
-		this.network['bridges'] = [];
+		this.network.loops = [];
+		this.network.bridges = [];
 		for (let i = 0; i < this.loops.length; i++) {
 			const loop = this.loops[i];
-			this.network['loops'].push({
-				name: loop['name'],
+			this.network.loops.push({
+				name: loop.name,
 				elements: [],
 				sections: [],
 				pods: []
 			});
-			loop['loop'].forEach((linkId) => {
+			loop.loop.forEach((linkId) => {
 				const link = this.getLink(linkId);
-				const circle = this.getCircle(link['from']);
+				const circle = this.getCircle(link.from);
 				let elt = {
 					type: circle.type,
 					name: circle.name,
@@ -444,18 +444,18 @@ export class CanvaComponent implements OnInit {
 					y: circle.y,
 					station_type: circle.station_type
 				}
-				if (elt['type'] == 'station') {
+				if (elt.type == 'station') {
 					elt['travelers'] = {
 						count: 0, 
 						average_waiting_time: 0, 
 						all_time_count: 0
 					}
 					elt['pods']['count'] = 0;
-				} else if (elt['type'] == 'shed') {
-					elt['pods']['count'] = circle['pods']['max'];
+				} else if (elt.type == 'shed') {
+					elt['pods']['count'] = circle.pods.max;
 				}
-				this.network['loops'][i]['elements'].push(elt);
-				this.network['loops'][i]['sections'].push({
+				this.network.loops[i].elements.push(elt);
+				this.network.loops[i].sections.push({
 					speed: 16.67,
 					path: {
 						type: 'line'

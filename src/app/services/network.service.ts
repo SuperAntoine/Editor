@@ -4,8 +4,8 @@ import { Injectable } from '@angular/core';
 
 @Injectable()
 export class NetworkService {
-	networkSubject = new Subject<Object>();
-	network: Object;
+	networkSubject = new Subject<any>();
+	network: any;
 	linkingSubject = new Subject<boolean>();
 	linking: boolean;
 	editingSubject = new Subject<boolean>();

@@ -11,7 +11,7 @@ import { NetworkService } from '../services/network.service';
 export class ParametersComponent implements OnInit {
 
 	networkSubscription: Subscription;
-	network: Object;
+	network: any;
 	editedElementSubscription: Subscription;
 	editedElement: Object;
 

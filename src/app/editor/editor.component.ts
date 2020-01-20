@@ -12,7 +12,7 @@ export class EditorComponent implements OnInit {
 
 	networkSubscription: Subscription;
 	exportSubscription: Subscription;
-	network: Object;
+	network: any;
 	fileUrl;
 
   constructor(private networkService: NetworkService,
