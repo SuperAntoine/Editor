@@ -384,6 +384,7 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	removeLoop(id: number) {
+		//Supprime une boucle selon l'id
 		for (let k = 0; k < this.loops.length; k++) {
 			const loop = this.loops[k].loop;
 			if (loop.includes(id))
@@ -392,6 +393,8 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	removeLink(id: number) {
+		//Supprimer un lien selon l'id + la boucle si besoin
+		// TODO: intégrer à removeCircle
 		for (let i = 0; i < this.links.length; i++)
 			if (this.links[i].id == id) {
 				this.links.splice(i, 1);
@@ -418,6 +421,7 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	convertLinks(id: number) {
+		// Convertit les liens pour les envoyer à l'édition
 		let res = [];
 		this.links.forEach((link) => {
 			if (link.from == id) {
