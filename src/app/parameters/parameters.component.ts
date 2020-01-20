@@ -13,7 +13,7 @@ export class ParametersComponent implements OnInit {
 	networkSubscription: Subscription;
 	network: any;
 	editedElementSubscription: Subscription;
-	editedElement: Object;
+	editedElement: any;
 
   constructor(private networkService: NetworkService) { }
 
@@ -39,6 +39,14 @@ export class ParametersComponent implements OnInit {
 			this.networkService.toggleEdit();
 			this.editedElement = null;
 		}
+	}
+	
+	removeLink(id: number) {
+		const links = this.editedElement.links;
+		for (let i = 0; i < links.length; i++)
+			if (links[i].id == id)
+				this.editedElement.links.splice(i--, 1);
+		this.networkService.emitRemoveLinkSubject(id);
 	}
 
 }

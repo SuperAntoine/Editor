@@ -20,6 +20,7 @@ export class NetworkService {
 	newNetworkSubject = new Subject();
 	convertSubject = new Subject();
 	exportSubject = new Subject();
+	removeLinkSubject = new Subject<number>();
 	
 	init() {
 		this.setNetwork();
@@ -68,6 +69,10 @@ export class NetworkService {
 	
 	emitExportSubject() {
 		this.exportSubject.next();
+	}
+	
+	emitRemoveLinkSubject(id: number) {
+		this.removeLinkSubject.next(id);
 	}
 	
 	setNetwork() {

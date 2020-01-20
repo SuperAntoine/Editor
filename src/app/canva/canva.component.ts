@@ -22,6 +22,7 @@ export class CanvaComponent implements OnInit {
 	removingSubscription: Subscription;
 	newNetworkSubscription: Subscription;
 	convertSubscription: Subscription;
+	removeLinkSubscription: Subscription;
 	
 	network: any; //Réseau
 	fontSize: number = 10; //Taille de la police
@@ -174,7 +175,14 @@ export class CanvaComponent implements OnInit {
 				y.networkService.export();
 			}
 		);
-  }
+		// Réception de l'ordre de suppression d'un lien
+		this.removeLinkSubscription = this.networkService.removeLinkSubject.subscribe(
+			(id: number) => {
+				this.removeLink(id);
+				this.update();
+			}
+		);
+		}
 	
 	newNetwork() {
 		//Réinitialise le modèle édtieur
@@ -375,6 +383,14 @@ export class CanvaComponent implements OnInit {
 		return Math.sqrt((x2-x1)**2 + (y2-y1)**2);
 	}
 	
+	removeLink(id: number) {
+		for (let i = 0; i < this.links.length; i++)
+			if (this.links[i].id == id) {
+				this.links.splice(i, 1);
+				return;
+			}
+	}
+	
 	removeCircle(id: number) {
 		//Supprime un cercle + les potentiels liens et boucles auquels il appartient
 		for (let i = 0; i < this.circles.length; i++)
@@ -402,6 +418,7 @@ export class CanvaComponent implements OnInit {
 			if (link.from == id) {
 				const to = this.getCircle(link.to).name;
 				res.push({
+					id: link.id,
 					type: 'from',
 					to: to
 				});
@@ -409,6 +426,7 @@ export class CanvaComponent implements OnInit {
 			else if (link.to == id) {
 				const from = this.getCircle(link.from).name;
 				res.push({
+					id: link.id,
 					type: 'to',
 					from: from
 				});
@@ -442,6 +460,10 @@ export class CanvaComponent implements OnInit {
 		if (!found) {
 			this.selected = -1;
 			this.networkService.unlink();
+			if (this.editing)
+				this.networkService.toggleEdit();
+			if (this.removing)
+				this.networkService.toggleRemove();
 		}
 	}
 	

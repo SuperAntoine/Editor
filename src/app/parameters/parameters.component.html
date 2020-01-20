@@ -28,12 +28,16 @@
                 <input type="number" id="station_type" class="form-control" name="station_type" min="1" max="3" [(ngModel)]="editedElement.elt.station_type" required>
             </div>
         </div>
-        <div *ngIf="editedElement.links != null">
+        <div *ngIf="editedElement.links.length == 0">
             <h3 class="test-center">Sections</h3>
             <ul class="list-group">
                 <li class="list-group-item" *ngFor="let link of editedElement.links">
                     <div *ngIf="link.type == 'from'">Section going to {{ link.to }}</div>
                     <div *ngIf="link.type == 'to'">Section coming from {{ link.from }}</div>
+                    <div class="btn-group mr-1" role="group">
+                        <button class="btn btn-primary">Go to</button>
+                        <button class="btn btn-danger" (click)="removeLink(link.id)">Remove</button>
+                    </div>
                 </li>
             </ul>
         </div>
