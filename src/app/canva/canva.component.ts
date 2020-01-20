@@ -33,8 +33,8 @@ export class CanvaComponent implements OnInit {
 	linking: boolean; //Vaut vrai si un lien est entrain d'être créé
 	linkingFrom: number; //Origine du lien
 	links: any[]; //Liste des liens
-	editing: boolean;
-	removing: boolean;
+	editing: boolean; //Vaut vrai si on est entrain d'édier
+	removing: boolean; //Vaut vrai si on est entrain de supprimer
 	nextLinkId: number; //Prochain id de lien
 	loops: any[]; //Liste des boucles 
 	nextLoopId: number; //Prochain id de boucle
@@ -169,6 +169,7 @@ export class CanvaComponent implements OnInit {
   }
 	
 	newNetwork() {
+		//Réinitialise le modèle édtieur
 		this.selected = -1;
 		this.circles = [];
 		this.nextCircleId = 0;
@@ -355,6 +356,7 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	angle(x1: number, y1: number, x2: number, y2: number) {
+		//Renvoie l'angle entre le vecteur défini par deux points et l'axe des abscisses
 		const vectX = x2 - x1;
 		const vectY = y2 - y1;
 		return Math.atan(vectY / vectX);
@@ -366,6 +368,7 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	removeCircle(id: number) {
+		//Supprime un cercle + les potentiels liens et boucles auquels il appartient
 		for (let i = 0; i < this.circles.length; i++)
 			if (this.circles[i].id == id) {
 				this.circles.splice(i, 1);
@@ -454,6 +457,7 @@ export class CanvaComponent implements OnInit {
 	}
 	
 	convertNetwork() {
+		//Convertit réseau modèle édtieur -> simulateur
 		this.network.loops = [];
 		this.network.bridges = [];
 		for (let i = 0; i < this.loops.length; i++) {
