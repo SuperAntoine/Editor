@@ -35,7 +35,7 @@ export class ParametersComponent implements OnInit {
 		if (this.editedElement == null)
 			this.networkService.updateNetwork(this.network);
 		else {
-			this.networkService.emitEditedSubject(this.editedElement);
+			this.networkService.emitEditedSubject(this.editedElement.elt);
 			this.networkService.toggleEdit();
 			this.editedElement = null;
 		}

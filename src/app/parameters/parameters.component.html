@@ -45,9 +45,11 @@
         </div>
         <div *ngIf="!editedElement.elt.hasOwnProperty('name')">
             <h2 class="text-center">Section paramters</h2>
-            <h3>Section from {{ editedElement.from_name }} to {{ editedElement.to_name }}</h3>
+            <h3>Section from {{ editedElement.elt.from_name }} to {{ editedElement.elt.to_name }}</h3>
             <label for="speed">Speed</label>
             <input type="number" id="speed" class="form-control" name="speed" min="0" [(ngModel)]="editedElement.elt.speed" required>
+            <label for="length">Length (in m)</label>
+            <input type="number" id="length" class="form-control" name="length" min="60" [(ngModel)]="editedElement.elt.length" required>
         </div>
     </div>
     <button type="submit" class="btn btn-primary mt-2" [disabled]="f.invalid">Save</button>

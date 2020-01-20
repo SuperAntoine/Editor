@@ -65,7 +65,6 @@ export class CanvaComponent implements OnInit {
 		
 		//Gestion du zoom avec la molette
 		document.body.onwheel = function(event) {
-			console.log(y.circles);
 			let shift = -1 * Math.sign(event.deltaY);
 			if (shift > 0 || y.fontSize > 2) {
 				y.fontSize += shift;
@@ -88,17 +87,8 @@ export class CanvaComponent implements OnInit {
 				
 			for (let i = 0; i < y.circles.length; i++) {
 				const circle = y.circles[i];
-				if (shift > 0 || circle.r > 2) {
-					const angle = y.angle(circle.x, circle.y, centerX, centerY);
-					const norm = y.distance(circle.x, circle.y, centerX, centerY)
-					const scale = norm / (y.baseRadius + y.zoom);
-					let side = 1;
-					if (circle.x < centerX)
-						side = -1
-					const coef = shift * side * scale;
-					y.circles[i].x += Math.cos(angle) * coef;
-					y.circles[i].y += Math.sin(angle) * coef;
-				}
+				if (shift > 0 || circle.r > 2)
+					y.circles[i] = y.moveCircle(circle, centerX, centerY, shift);
 			}
 			y.update();
 		}
@@ -132,16 +122,29 @@ export class CanvaComponent implements OnInit {
 		// Réception de l'élément modifié
 		this.editedSubscription = this.networkService.editedSubject.subscribe(
 			(elt: any) => {
-				if (elt.hasOwnProperty('name'))
+				if (elt.hasOwnProperty('name')) {
 					for (let i = 0; i < this.circles.length; i++) 
 						if (this.circles[i].id == elt.id)
 							this.circles[i] = elt;
+				}
 				else {
-					delete elt.from_name;
-					delete elt.to_name;
-					for (let i = 0; i < this.links.length; i++)
-						if (this.links[i].id == elt.id)
+					for (let i = 0; i < this.links.length; i++) {
+						const link = this.links[i];
+						if (link.id == elt.id) {
 							this.links[i] = elt;
+							if (elt.old_length != elt.length) {
+								const circle1 = this.getCircle(link.from);
+								const circle2 = this.getCircle(link.to);
+								const centerX = (circle1.x + circle2.x) / 2;
+								const centerY = (circle1.y + circle2.y) / 2;
+								const shift = (elt.length - elt.old_length) / 2;
+								const i = this.circles.indexOf(circle1);
+								const j = this.circles.indexOf(circle2);
+								this.circles[i] = this.moveCircle(circle1, centerX, centerY, shift);
+								this.circles[j] = this.moveCircle(circle2, centerX, centerY, shift);
+							}
+						}
+					}
 				}
 				this.update();
 			}
@@ -158,7 +161,7 @@ export class CanvaComponent implements OnInit {
 					y: this.canvasElement.height/2,
 					r: this.baseRadius + this.zoom,
 					type: type,
-					name: 'new ' + type,
+					name: type + ' ' + this.nextCircleId.toString(), 
 					station_type: 1,
 					pods: { max: max }
 				});
@@ -198,6 +201,7 @@ export class CanvaComponent implements OnInit {
 				let link = this.getLink(id);
 				link.from_name = this.getCircle(link.from).name;
 				link.to_name = this.getCircle(link.to).name;
+				link.old_length = link.length;
 				this.networkService.editElement(link, []);
 			}
 		);
@@ -384,7 +388,8 @@ export class CanvaComponent implements OnInit {
 				from: id1,
 				to: id2,
 				inLoop: false,
-				speed: 16.67
+				speed: 16.67,
+				length: this.distanceCircles(id1, id2)
 			});
 		}
 		this.networkService.unlink();
@@ -401,6 +406,25 @@ export class CanvaComponent implements OnInit {
 	distance(x1: number, y1: number, x2: number, y2: number) {
 		//Renvoie la distance entre deux points
 		return Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+	}
+	
+	distanceCircles(id1: number, id2: number) {
+		const circle1 = this.getCircle(id1);
+		const circle2 = this.getCircle(id2);
+		return this.distance(circle1.x, circle1.y, circle2.x, circle2.y);
+	}
+	
+	moveCircle(circle, centerX: number, centerY: number, shift: number) {
+		const angle = this.angle(circle.x, circle.y, centerX, centerY);
+		const norm = this.distance(circle.x, circle.y, centerX, centerY)
+		const scale = 1;//norm / (this.baseRadius + this.zoom);
+		let side = 1;
+		if (circle.x < centerX)
+			side = -1
+		const coef = shift * side * scale;
+		circle.x += Math.cos(angle) * coef;
+		circle.y += Math.sin(angle) * coef;
+		return circle;
 	}
 	
 	removeLoop(id: number) {
