@@ -396,6 +396,27 @@ export class CanvaComponent implements OnInit {
 			}
 	}
 	
+	convertLinks(id: number) {
+		let res = [];
+		this.links.forEach((link) => {
+			if (link.from == id) {
+				const to = this.getCircle(link.to).name;
+				res.push({
+					type: 'from',
+					to: to
+				});
+			}
+			else if (link.to == id) {
+				const from = this.getCircle(link.from).name;
+				res.push({
+					type: 'to',
+					from: from
+				});
+			}
+		});
+		return res;
+	}
+	
 	findCircle(x: number, y: number) {
 		//Si un cercle est trouvé, il devient sélectionné
 		let found: boolean = false;
@@ -407,8 +428,10 @@ export class CanvaComponent implements OnInit {
 						this.linkingFrom = i;
 					else 
 						this.createLink(this.linkingFrom, circle.id);
-				} else if (this.editing)
-					this.networkService.editElement(circle);
+				} else if (this.editing) {
+					const links = this.convertLinks(circle.id);
+					this.networkService.editElement(circle, links);
+				}
 				else if (this.removing)
 					this.removeCircle(circle.id);
 				else

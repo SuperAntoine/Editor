@@ -111,12 +111,18 @@ export class NetworkService {
 	toggleEdit() {
 		this.editing = !this.editing;
 		if (!this.editing)
-			this.editElement(null);
+			this.editElement(null, null);
 		this.emitEditingSubject();
 	}
 	
-	editElement(elt: Object) {
-		this.editedElement = elt;
+	editElement(elt: Object, links: any[]) {
+		if (elt == null)
+			this.editedElement = null;
+		else
+			this.editedElement = {
+				elt: elt,
+				links: links
+				};
 		this.emitEditedElementSubject();
 	}
 	
