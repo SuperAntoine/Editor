@@ -131,6 +131,9 @@ export class CanvaComponent implements OnInit {
 					for (let i = 0; i < this.links.length; i++) {
 						const link = this.links[i];
 						if (link.id == elt.id) {
+							delete elt.from_name;
+							delete elt.to_name;
+							console.log(elt);
 							this.links[i] = elt;
 							if (elt.old_length != elt.length) {
 								const circle1 = this.getCircle(link.from);
@@ -417,7 +420,7 @@ export class CanvaComponent implements OnInit {
 	moveCircle(circle, centerX: number, centerY: number, shift: number) {
 		const angle = this.angle(circle.x, circle.y, centerX, centerY);
 		const norm = this.distance(circle.x, circle.y, centerX, centerY)
-		const scale = 1;//norm / (this.baseRadius + this.zoom);
+		const scale = norm / (this.baseRadius + this.zoom);
 		let side = 1;
 		if (circle.x < centerX)
 			side = -1
