@@ -387,6 +387,11 @@ export class CanvaComponent implements OnInit {
 		for (let i = 0; i < this.links.length; i++)
 			if (this.links[i].id == id) {
 				this.links.splice(i, 1);
+				for (let k = 0; k < this.loops.length; k++) {
+					const loop = this.loops[k].loop;
+					if (loop.includes(id))
+						this.loops.splice(k--, 1);
+				}
 				return;
 			}
 	}
