@@ -18,5 +18,10 @@
                 (click)="edit()">
             Edit
         </button>
+        <button class="btn" 
+                [ngClass]="{'btn-primary': !removing, 'btn-warning': removing}"
+                (click)="remove()">
+            Remove
+        </button>
     </div>
 </div>

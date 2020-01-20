@@ -13,6 +13,8 @@ export class ToolbarComponent implements OnInit {
 	linking: boolean;
 	editingSubscription: Subscription;
 	editing: boolean
+	removingSubscription: Subscription;
+	removing: boolean;
 
   constructor(private networkService: NetworkService) { }
 
@@ -29,11 +31,19 @@ export class ToolbarComponent implements OnInit {
 			}
 		);
 		this.networkService.emitEditingSubject();
+		this.removingSubscription = this.networkService.removingSubject.subscribe(
+			(removing: boolean) => {
+				this.removing = removing;
+			}
+		);
+		this.networkService.emitRemovingSubject();
   }
 	
 	link() {
 		if (this.editing)
 			this.networkService.toggleEdit();
+		if (this.removing)
+			this.networkService.toggleRemove();
 		if (this.linking)
 			this.networkService.unlink();
 		else
@@ -43,11 +53,21 @@ export class ToolbarComponent implements OnInit {
 	edit() {
 		if (this.linking) 
 			this.networkService.unlink();
+		if (this.removing)
+			this.networkService.toggleRemove();
 		this.networkService.toggleEdit();
 	}
 	
 	addElement(type: string) {
 		this.networkService.addElement(type);
+	}
+	
+	remove() {
+		if (this.linking)
+			this.networkService.unlink();
+		if (this.editing)
+			this.networkService.toggleEdit();
+		this.networkService.toggleRemove();
 	}
 	
 	newNetwork() {

@@ -49,7 +49,7 @@ export class CanvaComponent implements OnInit {
 		
 		this.newNetwork();
 		//Ajout d'événements de la souris
-		let y = this;
+		const y = this;
 		
 		//Détection du click
 		document.body.onmousedown = function() {
@@ -451,9 +451,8 @@ export class CanvaComponent implements OnInit {
 						all_time_count: 0
 					}
 					elt['pods']['count'] = 0;
-				} else if (elt.type == 'shed') {
+				} else if (elt.type == 'shed')
 					elt['pods']['count'] = circle.pods.max;
-				}
 				this.network.loops[i].elements.push(elt);
 				this.network.loops[i].sections.push({
 					speed: 16.67,
