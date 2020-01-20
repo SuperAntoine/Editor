@@ -152,7 +152,7 @@ export class CanvaComponent implements OnInit {
 					station_type: 1,
 					pods: { max: max }
 				});
-				this.networkService.unlink();
+				this.unToggleAll();
 			}
 		);
 		// Synchronisation de l'état de suppression
@@ -462,14 +462,17 @@ export class CanvaComponent implements OnInit {
 				found = true;
 			}
 		}
-		if (!found) {
-			this.selected = -1;
-			this.networkService.unlink();
-			if (this.editing)
-				this.networkService.toggleEdit();
-			if (this.removing)
-				this.networkService.toggleRemove();
-		}
+		if (!found)
+			this.unToggleAll();
+	}
+	
+	unToggleAll() {
+		this.selected = -1;
+		this.networkService.unlink();
+		if (this.editing)
+			this.networkService.toggleEdit();
+		if (this.removing)
+			this.networkService.toggleRemove();
 	}
 	
 	getShift() {
