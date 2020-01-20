@@ -387,8 +387,11 @@ export class CanvaComponent implements OnInit {
 		//Supprime une boucle selon l'id
 		for (let k = 0; k < this.loops.length; k++) {
 			const loop = this.loops[k].loop;
-			if (loop.includes(id))
+			if (loop.includes(id)) {
 				this.loops.splice(k--, 1);
+				this.checkForLoops();
+				return;
+			}
 		}
 	}
 	
