@@ -101,12 +101,14 @@ export class CanvaComponent implements OnInit {
 		}
 		
 		//Observables
+		// Synchronisation du réseau
 		this.networkSubscription = this.networkService.networkSubject.subscribe(
 			(network: Object) => {
 				this.network = network;
 			}
 		);
 		this.networkService.emitNetworkSubject();
+		// Mise à jour de l'état de liaison
 		this.linkingSubscription = this.networkService.linkingSubject.subscribe(
 			(linking: boolean) => {
 				this.linking = linking;
@@ -116,6 +118,7 @@ export class CanvaComponent implements OnInit {
 				}
 			}
 		);
+		// Synchronisation de l'état d'édition
 		this.networkService.emitLinkingSubject();
 		this.editingSubscription = this.networkService.editingSubject.subscribe(
 			(editing: boolean) => {
@@ -123,6 +126,7 @@ export class CanvaComponent implements OnInit {
 			}
 		);
 		this.networkService.emitEditingSubject();
+		// Réception de l'élément modifié
 		this.editedSubscription = this.networkService.editedSubject.subscribe(
 			(elt: any) => {
 				for (let i = 0; i < this.circles.length; i++) 
@@ -131,6 +135,7 @@ export class CanvaComponent implements OnInit {
 				this.update();
 			}
 		);
+		// Réception de l'ordre de création d'un nouvel élément
 		this.newElementSubscription = this.networkService.newElementSubject.subscribe(
 			(type: string) => {
 				let max = 4
@@ -149,17 +154,20 @@ export class CanvaComponent implements OnInit {
 				this.networkService.unlink();
 			}
 		);
+		// Synchronisation de l'état de suppression
 		this.removingSubscription = this.networkService.removingSubject.subscribe(
 			(removing: boolean) => {
 				this.removing = removing;
 			}
 		);
 		this.networkService.emitRemovingSubject();
+		// Réception de l'ordre de reset du réseau
 		this.newNetworkSubscription = this.networkService.newNetworkSubject.subscribe(
 			() => {
 				y.newNetwork()
 			}
 		);
+		// Réception de l'ordre d'exportation
 		this.convertSubscription = this.networkService.convertSubject.subscribe(
 			() => {
 				y.convertNetwork();
