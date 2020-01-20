@@ -19,6 +19,7 @@ export class CanvaComponent implements OnInit {
 	editingSubscription: Subscription;
 	editedSubscription: Subscription;
 	newElementSubscription: Subscription;
+	removingSubscription: Subscription;
 	newNetworkSubscription: Subscription;
 	convertSubscription: Subscription;
 	
@@ -33,6 +34,7 @@ export class CanvaComponent implements OnInit {
 	linkingFrom: number; //Origine du lien
 	links: any[]; //Liste des liens
 	editing: boolean;
+	removing: boolean;
 	nextLinkId: number; //Prochain id de lien
 	loops: any[]; //Liste des boucles 
 	nextLoopId: number; //Prochain id de boucle
@@ -147,6 +149,12 @@ export class CanvaComponent implements OnInit {
 				this.networkService.unlink();
 			}
 		);
+		this.removingSubscription = this.networkService.removingSubject.subscribe(
+			(removing: boolean) => {
+				this.removing = removing;
+			}
+		);
+		this.networkService.emitRemovingSubject();
 		this.newNetworkSubscription = this.networkService.newNetworkSubject.subscribe(
 			() => {
 				y.newNetwork()
@@ -357,6 +365,26 @@ export class CanvaComponent implements OnInit {
 		return Math.sqrt((x2-x1)**2 + (y2-y1)**2);
 	}
 	
+	removeCircle(id: number) {
+		for (let i = 0; i < this.circles.length; i++)
+			if (this.circles[i].id == id) {
+				this.circles.splice(i, 1);
+				for (let j = 0; j < this.links.length; j++) {
+					const link = this.links[j];
+					if (link.from == id || link.to == id) {
+						this.links.splice(j--, 1);
+						for (let k = 0; k < this.loops.length; k++) {
+							const loop = this.loops[k].loop;
+							if (loop.includes(link.id))
+								this.loops.splice(k--, 1);
+						}
+					}
+				}
+				this.networkService.toggleRemove();
+				return;
+			}
+	}
+	
 	findCircle(x: number, y: number) {
 		//Si un cercle est trouvé, il devient sélectionné
 		let found: boolean = false;
@@ -370,6 +398,8 @@ export class CanvaComponent implements OnInit {
 						this.createLink(this.linkingFrom, circle.id);
 				} else if (this.editing)
 					this.networkService.editElement(circle);
+				else if (this.removing)
+					this.removeCircle(circle.id);
 				else
 					this.selected = i;
 				found = true;
