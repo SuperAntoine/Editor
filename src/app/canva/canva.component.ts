@@ -383,15 +383,19 @@ export class CanvaComponent implements OnInit {
 		return Math.sqrt((x2-x1)**2 + (y2-y1)**2);
 	}
 	
+	removeLoop(id: number) {
+		for (let k = 0; k < this.loops.length; k++) {
+			const loop = this.loops[k].loop;
+			if (loop.includes(id))
+				this.loops.splice(k--, 1);
+		}
+	}
+	
 	removeLink(id: number) {
 		for (let i = 0; i < this.links.length; i++)
 			if (this.links[i].id == id) {
 				this.links.splice(i, 1);
-				for (let k = 0; k < this.loops.length; k++) {
-					const loop = this.loops[k].loop;
-					if (loop.includes(id))
-						this.loops.splice(k--, 1);
-				}
+				this.removeLoop(id);
 				return;
 			}
 	}
@@ -405,11 +409,7 @@ export class CanvaComponent implements OnInit {
 					const link = this.links[j];
 					if (link.from == id || link.to == id) {
 						this.links.splice(j--, 1);
-						for (let k = 0; k < this.loops.length; k++) {
-							const loop = this.loops[k].loop;
-							if (loop.includes(link.id))
-								this.loops.splice(k--, 1);
-						}
+						this.removeLoop(link.id);
 					}
 				}
 				this.networkService.toggleRemove();
