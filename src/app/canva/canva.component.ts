@@ -23,6 +23,7 @@ export class CanvaComponent implements OnInit {
 	newNetworkSubscription: Subscription;
 	convertSubscription: Subscription;
 	removeLinkSubscription: Subscription;
+	goToLinkSubscription: Subscription;
 	
 	network: any; //Réseau
 	fontSize: number = 10; //Taille de la police
@@ -64,6 +65,7 @@ export class CanvaComponent implements OnInit {
 		
 		//Gestion du zoom avec la molette
 		document.body.onwheel = function(event) {
+			console.log(y.circles);
 			let shift = -1 * Math.sign(event.deltaY);
 			if (shift > 0 || y.fontSize > 2) {
 				y.fontSize += shift;
@@ -95,7 +97,7 @@ export class CanvaComponent implements OnInit {
 						side = -1
 					const coef = shift * side * scale;
 					y.circles[i].x += Math.cos(angle) * coef;
-					y.circles[i].x += Math.sin(angle) * coef;
+					y.circles[i].y += Math.sin(angle) * coef;
 				}
 			}
 			y.update();
@@ -130,9 +132,17 @@ export class CanvaComponent implements OnInit {
 		// Réception de l'élément modifié
 		this.editedSubscription = this.networkService.editedSubject.subscribe(
 			(elt: any) => {
-				for (let i = 0; i < this.circles.length; i++) 
-					if (this.circles[i].id == elt.id)
-						this.circles[i] = elt;
+				if (elt.hasOwnProperty('name'))
+					for (let i = 0; i < this.circles.length; i++) 
+						if (this.circles[i].id == elt.id)
+							this.circles[i] = elt;
+				else {
+					delete elt.from_name;
+					delete elt.to_name;
+					for (let i = 0; i < this.links.length; i++)
+						if (this.links[i].id == elt.id)
+							this.links[i] = elt;
+				}
 				this.update();
 			}
 		);
@@ -182,7 +192,16 @@ export class CanvaComponent implements OnInit {
 				this.update();
 			}
 		);
-		}
+		// Réception de l'ordre d'édition d'une sections
+		this.goToLinkSubscription = this.networkService.goToLinkSubject.subscribe(
+			(id: number) => {
+				let link = this.getLink(id);
+				link.from_name = this.getCircle(link.from).name;
+				link.to_name = this.getCircle(link.to).name;
+				this.networkService.editElement(link, []);
+			}
+		);
+	}
 	
 	newNetwork() {
 		//Réinitialise le modèle édtieur
@@ -364,7 +383,8 @@ export class CanvaComponent implements OnInit {
 				id: this.nextLinkId++,
 				from: id1,
 				to: id2,
-				inLoop: false
+				inLoop: false,
+				speed: 16.67
 			});
 		}
 		this.networkService.unlink();
@@ -557,7 +577,7 @@ export class CanvaComponent implements OnInit {
 					elt['pods']['count'] = circle.pods.max;
 				this.network.loops[i].elements.push(elt);
 				this.network.loops[i].sections.push({
-					speed: 16.67,
+					speed: link.speed,
 					path: {
 						type: 'line'
 					}

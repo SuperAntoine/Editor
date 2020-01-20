@@ -48,5 +48,9 @@ export class ParametersComponent implements OnInit {
 				this.editedElement.links.splice(i--, 1);
 		this.networkService.emitRemoveLinkSubject(id);
 	}
+	
+	goTo(id: number) {
+		this.networkService.emitGoToLinkSubject(id);
+	}
 
 }

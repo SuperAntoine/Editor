@@ -21,6 +21,7 @@ export class NetworkService {
 	convertSubject = new Subject();
 	exportSubject = new Subject();
 	removeLinkSubject = new Subject<number>();
+	goToLinkSubject = new Subject<number>();
 	
 	init() {
 		this.setNetwork();
@@ -75,6 +76,10 @@ export class NetworkService {
 		this.removeLinkSubject.next(id);
 	}
 	
+	emitGoToLinkSubject(id: number) {
+		this.goToLinkSubject.next(id);
+	}
+	
 	setNetwork() {
 		this.network = {
 			name: 'Untitled network',
@@ -127,7 +132,7 @@ export class NetworkService {
 			this.editedElement = {
 				elt: elt,
 				links: links
-				};
+			};
 		this.emitEditedElementSubject();
 	}
 	
