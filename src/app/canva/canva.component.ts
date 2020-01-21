@@ -88,7 +88,7 @@ export class CanvaComponent implements OnInit {
 			for (let i = 0; i < y.circles.length; i++) {
 				const circle = y.circles[i];
 				if (shift > 0 || circle.r > 2)
-					y.circles[i] = y.moveCircle(circle, centerX, centerY, shift);
+					y.circles[i] = y.moveCircle(circle, centerX, centerY, shift, true);
 			}
 			y.update();
 		}
@@ -133,7 +133,6 @@ export class CanvaComponent implements OnInit {
 						if (link.id == elt.id) {
 							delete elt.from_name;
 							delete elt.to_name;
-							console.log(elt);
 							this.links[i] = elt;
 							if (elt.old_length != elt.length) {
 								const circle1 = this.getCircle(link.from);
@@ -143,8 +142,8 @@ export class CanvaComponent implements OnInit {
 								const shift = (elt.length - elt.old_length) / 2;
 								const i = this.circles.indexOf(circle1);
 								const j = this.circles.indexOf(circle2);
-								this.circles[i] = this.moveCircle(circle1, centerX, centerY, shift);
-								this.circles[j] = this.moveCircle(circle2, centerX, centerY, shift);
+								this.circles[i] = this.moveCircle(circle1, centerX, centerY, shift, false);
+								this.circles[j] = this.moveCircle(circle2, centerX, centerY, shift, false);
 							}
 						}
 					}
@@ -417,10 +416,12 @@ export class CanvaComponent implements OnInit {
 		return this.distance(circle1.x, circle1.y, circle2.x, circle2.y);
 	}
 	
-	moveCircle(circle, centerX: number, centerY: number, shift: number) {
+	moveCircle(circle, centerX: number, centerY: number, shift: number, scaling: boolean) {
 		const angle = this.angle(circle.x, circle.y, centerX, centerY);
-		const norm = this.distance(circle.x, circle.y, centerX, centerY)
-		const scale = norm / (this.baseRadius + this.zoom);
+		const norm = this.distance(circle.x, circle.y, centerX, centerY);
+		let scale = 1; 
+		if (scaling)
+			scale = norm / (this.baseRadius + this.zoom);
 		let side = 1;
 		if (circle.x < centerX)
 			side = -1
