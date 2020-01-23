@@ -629,6 +629,7 @@ export class CanvaComponent implements OnInit {
 		//Convertit réseau modèle édtieur -> simulateur
 		this.network.loops = [];
 		this.network.bridges = [];
+		let switches = [];
 		for (let i = 0; i < this.loops.length; i++) {
 			const loop = this.loops[i];
 			this.network.loops.push({
@@ -647,6 +648,7 @@ export class CanvaComponent implements OnInit {
 					y: circle.y
 				}
 				if (this.isSwitch(circle.id)) {
+					switches.push(circle.id);
 					elt['pods'] = [];
 					elt['id_bridge'] = circle.link;
 				} else {
@@ -672,7 +674,7 @@ export class CanvaComponent implements OnInit {
 				});
 			});
 			this.links.forEach((link) => {
-				if (link.bridge) {
+				if (link.bridge && link.from in switches && link.to in switches) {
 					this.network.bridges.push({
 						name: 'test',
 						section: {
