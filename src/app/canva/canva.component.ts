@@ -184,6 +184,7 @@ export class CanvaComponent implements OnInit {
 					this.circles.push(elt);
 				}
 				this.unToggleAll();
+				this.update()
 			}
 		);
 		// Synchronisation de l'état de suppression
@@ -305,8 +306,8 @@ export class CanvaComponent implements OnInit {
 		
 		//Affichage des liens
 		this.links.forEach((link) => {
-			let circle1 = this.circles[link.from];
-			let circle2 = this.circles[link.to];
+			let circle1 = this.getCircle(link.from);
+			let circle2 = this.getCircle(link.to);
 			this.ctx.beginPath();
 			//Affichage de la ligne
 			this.ctx.moveTo(circle1.x, circle1.y);
@@ -428,7 +429,8 @@ export class CanvaComponent implements OnInit {
 				bridge: bridge
 			});
 		}
-		this.networkService.unlink();
+		if (this.linking)
+			this.networkService.unlink();
 		this.checkForLoops();
 	}
 	
@@ -570,7 +572,8 @@ export class CanvaComponent implements OnInit {
 	
 	unToggleAll() {
 		this.selected = -1;
-		this.networkService.unlink();
+		if (this.linking)
+			this.networkService.unlink();
 		if (this.editing)
 			this.networkService.toggleEdit();
 		if (this.removing)
