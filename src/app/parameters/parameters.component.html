@@ -40,7 +40,7 @@
                         <div *ngIf="link.type == 'bridge'">Bridge</div>
                         <div class="btn-group mr-1" role="group">
                             <button class="btn btn-primary" (click)="goTo(link.id)">Go to</button>
-                            <button class="btn btn-danger" (click)="removeLink(link.id)">Remove</button>
+                            <button class="btn btn-danger" *ngIf="link.type != 'bridge'" (click)="removeLink(link.id)">Remove</button>
                         </div>
                     </li>
                 </ul>

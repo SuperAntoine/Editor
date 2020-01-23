@@ -168,7 +168,9 @@ export class CanvaComponent implements OnInit {
 					this.nextCircleId++;
 					elt2.x += elt.r * 2;
 					elt2['link'] = this.nextBridgeId;
+					elt2['linked'] = elt.id;
 					elt['link'] = this.nextBridgeId++;
+					elt['linked'] = elt2.id;
 					elt['type'] = 'switch_in';
 					elt['name'] = 'switch_in' + ' ' + (elt.id+1);
 					this.circles.push(elt);
@@ -494,6 +496,7 @@ export class CanvaComponent implements OnInit {
 		//Supprime un cercle + les potentiels liens et boucles auquels il appartient
 		for (let i = 0; i < this.circles.length; i++)
 			if (this.circles[i].id == id) {
+				const circle = this.circles[i];
 				this.circles.splice(i, 1);
 				for (let j = 0; j < this.links.length; j++) {
 					const link = this.links[j];
@@ -502,7 +505,10 @@ export class CanvaComponent implements OnInit {
 						this.removeLoop(link.id);
 					}
 				}
-				this.networkService.toggleRemove();
+				if (circle.type == 'switch_in' || circle.type == 'switch_out')
+					this.removeCircle(circle.linked);
+				if (this.removing)
+					this.networkService.toggleRemove();
 				return;
 			}
 	}
