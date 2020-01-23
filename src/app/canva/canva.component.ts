@@ -346,7 +346,7 @@ export class CanvaComponent implements OnInit {
 	findLink(id: number) {
 		//Renvoie l'indice d'un lien selon l'id
 		for (let i = 0; i < this.links.length; i++)
-			if (this.links[i].from == id)
+			if (this.links[i].from == id && !this.links[i].bridge)
 				return i;
 		return -1;
 	}
@@ -355,7 +355,7 @@ export class CanvaComponent implements OnInit {
 		//Vérifie s'il faut créer une boucle
 		for (let i = 0; i < this.links.length; i++) {
 			const link = this.links[i];
-			if (!link.inLoop) {
+			if (!link.inLoop && !link.bridge) {
 				let stop = false;
 				let isLoop = false;
 				let links = Object.assign([], this.links);
@@ -389,8 +389,8 @@ export class CanvaComponent implements OnInit {
 						loop.push(this.links[j].from);
 					}
 					this.loops.push({
-						id: this.nextLoopId,
-						name: 'untitled loop',
+						id: this.nextLoopId++,
+						name: 'untitled loop ' + this.nextLoopId,
 						loop: way
 					});
 				}
