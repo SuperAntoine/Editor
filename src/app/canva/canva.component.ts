@@ -42,6 +42,7 @@ export class CanvaComponent implements OnInit {
 	nextLoopId: number; //Prochain id de boucle
 	zoom: number; //Zoom actuel
 	baseRadius = 30; //Rayon de base d'un cercle
+	nextBridgeId: number;
 
   constructor(private networkService: NetworkService) { }
 
@@ -154,19 +155,32 @@ export class CanvaComponent implements OnInit {
 		// Réception de l'ordre de création d'un nouvel élément
 		this.newElementSubscription = this.networkService.newElementSubject.subscribe(
 			(type: string) => {
-				let max = 4
-				if (type == 'shed')
-					max = 50
-				this.circles.push({
+				let elt = {
 					id: this.nextCircleId++,
 					x: this.canvasElement.width/2,
 					y: this.canvasElement.height/2,
-					r: this.baseRadius + this.zoom,
-					type: type,
-					name: type + ' ' + this.nextCircleId.toString(), 
-					station_type: 1,
-					pods: { max: max }
-				});
+					r: this.baseRadius + this.zoom
+				};
+				if (type == 'bridge') {
+					let elt2 = Object.assign({}, elt);
+					elt2['type'] = 'switch_out';
+					elt2['name'] = 'switch_out' + ' ' + (++elt2.id+1);
+					this.nextCircleId++;
+					elt2.x += elt.r * 2;
+					elt2['link'] = this.nextBridgeId;
+					elt['link'] = this.nextBridgeId++;
+					elt['type'] = 'switch_in';
+					elt['name'] = 'switch_in' + ' ' + (elt.id+1);
+					this.circles.push(elt);
+					this.circles.push(elt2);
+					this.createLink(elt.id, elt2.id, true);
+				} else {
+					elt['name'] = type + ' ' + this.nextCircleId.toString();
+					elt['type'] = type;
+					elt['max_pods'] = type == 'station' ? 4: 50;
+					elt['station_type'] = 1;
+					this.circles.push(elt);
+				}
 				this.unToggleAll();
 			}
 		);
@@ -219,6 +233,7 @@ export class CanvaComponent implements OnInit {
 		this.loops = [];
 		this.nextLoopId = 0;
 		this.zoom = 0;
+		this.nextBridgeId = 0;
 		this.update();
 	}
 	
@@ -238,7 +253,7 @@ export class CanvaComponent implements OnInit {
 	getLink(id: number) {
 		//Renvoie un lien selon l'id
 		for (let i = 0; i < this.links.length; i++)
-			if (this.links[i].id == id)
+			if (!this.links[i].bridge && this.links[i].id == id)
 				return this.links[i];
 		return null;
 	}
@@ -260,6 +275,11 @@ export class CanvaComponent implements OnInit {
 					}
 					case 'shed': {
 						this.ctx.fillStyle = 'blue';
+						break;
+					}
+					case 'switch_in':
+					case 'switch_out': {
+						this.ctx.fillStyle = 'green';
 						break;
 					}
 				}
@@ -376,13 +396,18 @@ export class CanvaComponent implements OnInit {
 		//Détecte si un les cercles ne sont pas déjà origine ou destination d'un lien
 		for (let i = 0; i < this.links.length; i++) {
 			const link = this.links[i];
-			if (link.from == id1 || link.to == id2)
+			if (!link.bridge && (link.from == id1 || link.to == id2))
 				return true;
 		}
 		return false;
 	}
 	
-	createLink(id1: number, id2: number) {
+	isSwitch(id: number) {
+		const circle = this.getCircle(id);
+		return circle.type == 'switch_in' || circle.type == 'switch_out';
+	}
+	
+	createLink(id1: number, id2: number, bridge: boolean) {
 		//Crée un nouveau lien
 		if (id1 != id2 && !this.alreadyLinked(id1, id2)) {
 			this.links.push({
@@ -391,7 +416,8 @@ export class CanvaComponent implements OnInit {
 				to: id2,
 				inLoop: false,
 				speed: 16.67,
-				length: this.distanceCircles(id1, id2)
+				length: this.distanceCircles(id1, id2),
+				bridge: bridge
 			});
 		}
 		this.networkService.unlink();
@@ -509,7 +535,7 @@ export class CanvaComponent implements OnInit {
 					if (this.linkingFrom == -1)
 						this.linkingFrom = i;
 					else 
-						this.createLink(this.linkingFrom, circle.id);
+						this.createLink(this.linkingFrom, circle.id, false);
 				} else if (this.editing) {
 					const links = this.convertLinks(circle.id);
 					this.networkService.editElement(circle, links);
@@ -607,18 +633,25 @@ export class CanvaComponent implements OnInit {
 					type: circle.type,
 					name: circle.name,
 					x: circle.x,
-					y: circle.y,
-					station_type: circle.station_type
+					y: circle.y
 				}
-				if (elt.type == 'station') {
-					elt['travelers'] = {
-						count: 0, 
-						average_waiting_time: 0, 
-						all_time_count: 0
+				if (this.isSwitch(circle.id)) {
+					elt['pods'] = [];
+					elt['id_bridge'] = circle.link;
+				} else {
+					elt['pods'] = {
+						max: circle.max_pods,
+						count: circle.type == 'station' ? 0: circle.max_pods
+					};
+					if (elt.type == 'station') {
+						elt['station_type'] = circle.station_type;
+						elt['travelers'] = {
+							count: 0, 
+							average_waiting_time: 0, 
+							all_time_count: 0
+						};
 					}
-					elt['pods']['count'] = 0;
-				} else if (elt.type == 'shed')
-					elt['pods']['count'] = circle.pods.max;
+				}
 				this.network.loops[i].elements.push(elt);
 				this.network.loops[i].sections.push({
 					speed: link.speed,
@@ -626,6 +659,20 @@ export class CanvaComponent implements OnInit {
 						type: 'line'
 					}
 				});
+			});
+			this.links.forEach((link) => {
+				if (link.bridge) {
+					this.network.bridges.push({
+						name: 'test',
+						section: {
+							speed: 15,
+							path: {
+								type: 'line'
+							}
+						},
+						pods: []
+					});
+				}
 			});
 		}
 		this.networkService.updateNetwork(this.network);
