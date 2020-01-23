@@ -418,6 +418,7 @@ export class CanvaComponent implements OnInit {
 	
 	createLink(id1: number, id2: number, bridge: boolean) {
 		//Crée un nouveau lien
+		// TODO : ne pas pouvoir linker des switch de boucles différentes
 		const b = !bridge && this.isSwitch(id1) && this.isSwitch(id2) && this.getCircle(id1).linked == id2;
 		if (!b && id1 != id2 && !this.alreadyLinked(id1, id2)) {
 			this.links.push({
