@@ -499,7 +499,7 @@ export class CanvaComponent implements OnInit {
 		for (let i = 0; i < this.circles.length; i++)
 			if (this.circles[i].id == id) {
 				const circle = this.circles[i];
-				this.circles.splice(i, 1);
+				this.circles.splice(i--, 1);
 				for (let j = 0; j < this.links.length; j++) {
 					const link = this.links[j];
 					if (link.from == id || link.to == id) {
@@ -552,7 +552,7 @@ export class CanvaComponent implements OnInit {
 			if (this.distance(circle.x, circle.y, x, y) < circle.r) {
 				if (this.linking) {
 					if (this.linkingFrom == -1)
-						this.linkingFrom = i;
+						this.linkingFrom = circle.id;
 					else 
 						this.createLink(this.linkingFrom, circle.id, false);
 				} else if (this.editing) {
