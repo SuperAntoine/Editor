@@ -37,6 +37,7 @@
                     <li class="list-group-item" *ngFor="let link of editedElement.links">
                         <div *ngIf="link.type == 'from'">Section going to {{ link.to }}</div>
                         <div *ngIf="link.type == 'to'">Section coming from {{ link.from }}</div>
+                        <div *ngIf="link.type == 'bridge'">Bridge</div>
                         <div class="btn-group mr-1" role="group">
                             <button class="btn btn-primary" (click)="goTo(link.id)">Go to</button>
                             <button class="btn btn-danger" (click)="removeLink(link.id)">Remove</button>
@@ -47,7 +48,8 @@
         </div>
         <div *ngIf="!editedElement.elt.hasOwnProperty('name')">
             <h2 class="text-center">Section paramters</h2>
-            <h3>Section from {{ editedElement.elt.from_name }} to {{ editedElement.elt.to_name }}</h3>
+            <h3 *ngIf="!editedElement.elt.bridge">Section from {{ editedElement.elt.from_name }} to {{ editedElement.elt.to_name }}</h3>
+            <h3 *ngIf="editedElement.elt.bridge">Bridge from {{ editedElement.elt.from_name }} to {{ editedElement.elt.to_name }}</h3>
             <label for="speed">Speed</label>
             <input type="number" id="speed" class="form-control" name="speed" min="0" [(ngModel)]="editedElement.elt.speed" required>
             <label for="length">Length (in m)</label>

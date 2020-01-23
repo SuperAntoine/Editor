@@ -214,9 +214,15 @@ export class CanvaComponent implements OnInit {
 		// Réception de l'ordre d'édition d'une sections
 		this.goToLinkSubscription = this.networkService.goToLinkSubject.subscribe(
 			(id: number) => {
-				let link = this.getLink(id);
-				link.from_name = this.getCircle(link.from).name;
-				link.to_name = this.getCircle(link.to).name;
+				let link;
+				this.links.forEach((linkElt) => {
+					if (linkElt.id == id)
+						link = linkElt;
+				});
+				if (link.type != 'bridge') {
+					link.from_name = this.getCircle(link.from).name;
+					link.to_name = this.getCircle(link.to).name;
+				}
 				link.old_length = link.length;
 				this.networkService.editElement(link, []);
 			}
@@ -505,7 +511,12 @@ export class CanvaComponent implements OnInit {
 		// Convertit les liens pour les envoyer à l'édition
 		let res = [];
 		this.links.forEach((link) => {
-			if (link.from == id) {
+			if (link.bridge) {
+				res.push({
+					id: link.id,
+					type: 'bridge'
+				});
+			} else if (link.from == id) {
 				const to = this.getCircle(link.to).name;
 				res.push({
 					id: link.id,
@@ -665,7 +676,7 @@ export class CanvaComponent implements OnInit {
 					this.network.bridges.push({
 						name: 'test',
 						section: {
-							speed: 15,
+							speed: link.speed,
 							path: {
 								type: 'line'
 							}
