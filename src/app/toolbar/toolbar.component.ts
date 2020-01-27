@@ -77,5 +77,16 @@ export class ToolbarComponent implements OnInit {
 	export() {
 		this.networkService.convert();
 	}
+    
+    import(files) {
+        const file = files.item(0);
+        file.text().then((text) => {
+            try {
+                this.networkService.emitJsonSubject(JSON.parse(text));
+            } catch(SyntaxError) {
+                console.log('error');
+            }
+        });
+    }
 
 }

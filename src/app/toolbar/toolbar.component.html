@@ -2,6 +2,10 @@
     <div class="btn-group mr-2" role="group">
         <button class="btn btn-primary" (click)="newNetwork()">New network</button>
         <button class="btn btn-primary" (click)="export()">Export</button>
+        <label class="btn btn-primary">
+            Import 
+            <input type="file" (change)="import($event.target.files)" hidden>
+        </label>
     </div>
     <div class="btn-group mr-2" role="group">
         <button class="btn btn-primary" (click)="addElement('station')">Add station</button>

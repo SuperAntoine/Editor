@@ -20,9 +20,9 @@
         <div *ngIf="editedElement.elt.hasOwnProperty('name')">
             <h2 class="text-center">{{ editedElement.elt.name }} parameters</h2>
             <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" id="name" class="form-control" name="name" [(ngModel)]="editedElement.elt.name" required>
                 <div *ngIf="editedElement.elt.type == 'station' || editedElement.elt.type == 'shed'">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" class="form-control" name="name" [(ngModel)]="editedElement.elt.name" required>
                     <label for="max_pods">Pod capacity</label>
                     <input type="number" id="max_pods" class="form-control" name="max_pods" min="1" [(ngModel)]="editedElement.elt.max_pods" required>
                 </div>

@@ -22,6 +22,7 @@ export class NetworkService {
 	exportSubject = new Subject();
 	removeLinkSubject = new Subject<number>();
 	goToLinkSubject = new Subject<number>();
+    jsonSubject = new Subject<any>();
 	
 	init() {
 		this.setNetwork();
@@ -79,6 +80,10 @@ export class NetworkService {
 	emitGoToLinkSubject(id: number) {
 		this.goToLinkSubject.next(id);
 	}
+    
+    emitJsonSubject(network: any) {
+        this.jsonSubject.next(network);
+    }
 	
 	setNetwork() {
 		this.network = {

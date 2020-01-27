@@ -10,7 +10,7 @@ import { NetworkService } from '../services/network.service';
 export class CanvaComponent implements OnInit {
 
 	@ViewChild('canvas', { static: true })
-  canvas: ElementRef<HTMLCanvasElement>;
+    canvas: ElementRef<HTMLCanvasElement>;
 	canvasElement; //Elément canvas
 	ctx: CanvasRenderingContext2D; //Contexte
 	
@@ -24,6 +24,7 @@ export class CanvaComponent implements OnInit {
 	convertSubscription: Subscription;
 	removeLinkSubscription: Subscription;
 	goToLinkSubscription: Subscription;
+    jsonSubcription: Subscription;
 	
 	network: any; //Réseau
 	fontSize: number = 10; //Taille de la police
@@ -41,7 +42,7 @@ export class CanvaComponent implements OnInit {
 	loops: any[]; //Liste des boucles 
 	nextLoopId: number; //Prochain id de boucle
 	zoom: number; //Zoom actuel
-	baseRadius = 30; //Rayon de base d'un cercle
+	baseRadius = 10; //Rayon de base d'un cercle
 	nextBridgeId: number;
 
   constructor(private networkService: NetworkService) { }
@@ -155,34 +156,7 @@ export class CanvaComponent implements OnInit {
 		// Réception de l'ordre de création d'un nouvel élément
 		this.newElementSubscription = this.networkService.newElementSubject.subscribe(
 			(type: string) => {
-				let elt = {
-					id: this.nextCircleId++,
-					x: this.canvasElement.width/2,
-					y: this.canvasElement.height/2,
-					r: this.baseRadius + this.zoom
-				};
-				if (type == 'bridge') {
-					let elt2 = Object.assign({}, elt);
-					elt2['type'] = 'switch_out';
-					elt2['name'] = 'switch_out' + ' ' + (++elt2.id+1);
-					this.nextCircleId++;
-					elt2.x += elt.r * 2;
-					elt2['link'] = this.nextBridgeId;
-					elt2['linked'] = elt.id;
-					elt['link'] = this.nextBridgeId++;
-					elt['linked'] = elt2.id;
-					elt['type'] = 'switch_in';
-					elt['name'] = 'switch_in' + ' ' + (elt.id+1);
-					this.circles.push(elt);
-					this.circles.push(elt2);
-					this.createLink(elt.id, elt2.id, true);
-				} else {
-					elt['name'] = type + ' ' + this.nextCircleId.toString();
-					elt['type'] = type;
-					elt['max_pods'] = type == 'station' ? 4: 50;
-					elt['station_type'] = 1;
-					this.circles.push(elt);
-				}
+				this.createCircle(this.canvasElement.width/2, this.canvasElement.height/2, type == 'station' ? 4: 50, null, type)
 				this.unToggleAll();
 				this.update()
 			}
@@ -230,7 +204,58 @@ export class CanvaComponent implements OnInit {
 				this.networkService.editElement(link, []);
 			}
 		);
+        // Importation d'un réseau
+        this.jsonSubcription = this.networkService.jsonSubject.subscribe(
+            (network) => {
+                this.newNetwork();
+                this.convertFromNetwork(network);
+                this.update();
+            }
+        );
 	}
+    
+    linkBridge(i: number, j: number, speed: number, loopName: string) {
+        const id1 = this.circles[i].id;
+        const id2 = this.circles[j].id;
+        
+        this.circles[i].link = this.nextBridgeId;
+        this.circles[i].linked = this.circles[j].id;
+        this.circles[i].name = 'switch_out ' + (this.nextCircleId-1);
+        this.circles[j].link = this.nextBridgeId++;
+        this.circles[j].linked = this.circles[i].id;
+        this.circles[j].name = 'switch_in ' + (this.nextCircleId-1);
+
+        this.createLink(id1, id2, speed, true, loopName);
+    }
+    
+    createCircle(x: number, y: number, max_pods: number, name: string, type: string) {
+        let elt = {
+            id: this.nextCircleId++,
+            x: x,
+            y: y,
+            r: this.baseRadius + this.zoom
+        };
+        if (type == 'bridge') {
+            elt['type'] = 'switch_in';
+            this.circles.push(elt);
+            
+            let elt2 = Object.assign({}, elt);
+            elt2['type'] = 'switch_out';
+            elt2['id'] = this.nextCircleId++;
+            elt2.x += elt.r * 4;
+            this.circles.push(elt2);
+            
+            const n = this.circles.length - 1;
+            this.linkBridge(n-1, n, 16.67, null);
+        } else {
+            elt['name'] = name != null ? name: type + ' ' + this.nextCircleId.toString();
+            elt['type'] = type;
+            elt['max_pods'] = max_pods;
+            if (type == 'station')
+                elt['station_type'] = 1;
+            this.circles.push(elt);
+        }
+    }
 	
 	newNetwork() {
 		//Réinitialise le modèle édtieur
@@ -299,9 +324,11 @@ export class CanvaComponent implements OnInit {
 			this.ctx.stroke();
 			this.ctx.fill();
 			//Affichage du texte
-			this.ctx.fillStyle = 'black';
-			this.ctx.fillText(circle.name, circle.x, circle.y + circle.r * 1.3, circle.r * 2);
-			this.ctx.closePath();
+            if (!this.isSwitch(circle.id)) {
+                this.ctx.fillStyle = 'black';
+                this.ctx.fillText(circle.name, circle.x, circle.y + circle.r * 2);
+                this.ctx.closePath();
+            }
 		});
 		
 		//Affichage des liens
@@ -312,18 +339,23 @@ export class CanvaComponent implements OnInit {
 			//Affichage de la ligne
 			this.ctx.moveTo(circle1.x, circle1.y);
 			this.ctx.lineTo(circle2.x, circle2.y);
-			//Calculs
-			const angle = this.angle(circle1.x, circle1.y, circle2.x, circle2.y) + 5 * Math.PI / 6;
-			let side = 1;
-			if (circle2.x < circle1.x)
-				side = -1
-			const coef = (20 + this.zoom) * side;
-			//Affichage des flèches
-			this.ctx.lineTo(circle2.x + Math.cos(angle) * coef, circle2.y + Math.sin(angle) * coef);
-			this.ctx.stroke()
-			this.ctx.moveTo(circle2.x, circle2.y);
-			this.ctx.lineTo(circle2.x + Math.cos(angle + Math.PI/3) * coef, circle2.y + Math.sin(angle + Math.PI/3) * coef);
-			this.ctx.stroke();
+            this.ctx.stroke();
+            
+            if (!link.bridge) {
+                //Calculs
+                const angle = this.angle(circle1.x, circle1.y, circle2.x, circle2.y) + 5 * Math.PI / 6;
+                let side = 1;
+                if (circle2.x < circle1.x)
+                    side = -1
+                const coef = (20 + this.zoom) * side;
+                //Affichage des flèches
+                this.ctx.lineTo(circle2.x + Math.cos(angle) * coef, circle2.y + Math.sin(angle) * coef);
+                this.ctx.stroke()
+                this.ctx.moveTo(circle2.x, circle2.y);
+                this.ctx.lineTo(circle2.x + Math.cos(angle + Math.PI/3) * coef, circle2.y + Math.sin(angle + Math.PI/3) * coef);
+                this.ctx.stroke();
+            }
+            
 			this.ctx.closePath();
 		});
 		
@@ -354,7 +386,7 @@ export class CanvaComponent implements OnInit {
 		return -1;
 	}
 	
-	checkForLoops() {
+	checkForLoops(name: string) {
 		//Vérifie s'il faut créer une boucle
 		for (let i = 0; i < this.links.length; i++) {
 			const link = this.links[i];
@@ -393,7 +425,7 @@ export class CanvaComponent implements OnInit {
 					}
 					this.loops.push({
 						id: this.nextLoopId++,
-						name: 'untitled loop ' + this.nextLoopId,
+						name: name != null ? name: 'untitled loop ' + this.nextLoopId,
 						loop: way
 					});
 				}
@@ -416,24 +448,24 @@ export class CanvaComponent implements OnInit {
 		return circle.type == 'switch_in' || circle.type == 'switch_out';
 	}
 	
-	createLink(id1: number, id2: number, bridge: boolean) {
+	createLink(id1: number, id2: number, speed: number, bridge: boolean, loopName: string) {
 		//Crée un nouveau lien
 		// TODO : ne pas pouvoir linker des switch de boucles différentes
 		const b = !bridge && this.isSwitch(id1) && this.isSwitch(id2) && this.getCircle(id1).linked == id2;
-		if (!b && id1 != id2 && !this.alreadyLinked(id1, id2)) {
+		if (!b && id1 != id2 && (bridge || !this.alreadyLinked(id1, id2))) {
 			this.links.push({
 				id: this.nextLinkId++,
 				from: id1,
 				to: id2,
 				inLoop: false,
-				speed: 16.67,
+				speed: speed,
 				length: this.distanceCircles(id1, id2),
 				bridge: bridge
 			});
 		}
 		if (this.linking)
 			this.networkService.unlink();
-		this.checkForLoops();
+		this.checkForLoops(loopName);
 	}
 	
 	angle(x1: number, y1: number, x2: number, y2: number) {
@@ -479,7 +511,6 @@ export class CanvaComponent implements OnInit {
 			const loop = this.loops[k].loop;
 			if (loop.includes(id)) {
 				this.loops.splice(k--, 1);
-				this.checkForLoops();
 				return;
 			}
 		}
@@ -556,7 +587,7 @@ export class CanvaComponent implements OnInit {
 					if (this.linkingFrom == -1)
 						this.linkingFrom = circle.id;
 					else 
-						this.createLink(this.linkingFrom, circle.id, false);
+						this.createLink(this.linkingFrom, circle.id, 16.67, false, null);
 				} else if (this.editing) {
 					const links = this.convertLinks(circle.id);
 					this.networkService.editElement(circle, links);
@@ -701,5 +732,45 @@ export class CanvaComponent implements OnInit {
 		}
 		this.networkService.updateNetwork(this.network);
 	}
+    
+    convertFromNetwork(network) {
+        this.network = Object.assign({}, network);
+        this.network.loops = [];
+        this.network.bridges = [];
+        
+        let bridges = [];
+        for (let i = 0; i < network.bridges.length; i++)
+            bridges.push([]);
+        
+        network.loops.forEach((loop) => {        
+            const firstId = this.nextCircleId;
+            loop.elements.forEach((elt) => {
+                if (elt.type != 'sensor') {
+                    const statOrShed = elt.type == 'station' || elt.type == 'shed'
+                    const max_pods = statOrShed ? elt.pods.max: null;
+                    const name = statOrShed ? elt.name: null;
+                    this.createCircle(elt.x, elt.y, max_pods, name, elt.type);
+                    if (!statOrShed)
+                        bridges[elt.id_bridge].push(this.circles.length - 1);
+                }
+            });
+            const lastId = this.nextCircleId - 1;
+            
+            let i = firstId;
+            loop.sections.forEach((section) => {
+                if (i < lastId)
+                    this.createLink(i++, i, section.speed, false, loop.name);
+                else
+                    this.createLink(lastId, firstId, section.speed, false, loop.name);
+            });
+        });
+
+        for (let k = 0; k < bridges.length; k++) {
+            const i = bridges[k][0];
+            const j = bridges[k][1];
+            const bridge = network.bridges[k];
+            this.linkBridge(i, j, bridge.speed, null);
+        }
+    }
 
 }
