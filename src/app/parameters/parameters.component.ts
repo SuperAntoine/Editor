@@ -14,6 +14,7 @@ export class ParametersComponent implements OnInit {
 	network: any;
 	editedElementSubscription: Subscription;
 	editedElement: any;
+    maxSpeed: number;
 
   constructor(private networkService: NetworkService) { }
 
@@ -21,6 +22,7 @@ export class ParametersComponent implements OnInit {
 		this.networkSubscription = this.networkService.networkSubject.subscribe(
 			(network: Object) => {
 				this.network = network;
+                this.maxSpeed = network['max_speed'];
 			}
 		);
 		this.networkService.emitNetworkSubject();

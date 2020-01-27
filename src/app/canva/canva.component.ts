@@ -26,6 +26,8 @@ export class CanvaComponent implements OnInit {
 	goToLinkSubscription: Subscription;
     jsonSubcription: Subscription;
 	
+    canvaWidth = 800;
+    canvaHeight = 600;
 	network: any; //Réseau
 	fontSize: number = 10; //Taille de la police
 	circles: any[]; //Liste des cercles
@@ -220,10 +222,10 @@ export class CanvaComponent implements OnInit {
         
         this.circles[i].link = this.nextBridgeId;
         this.circles[i].linked = this.circles[j].id;
-        this.circles[i].name = 'switch_out ' + (this.nextCircleId-1);
+        this.circles[i].name = 'switch_out ' + this.circles[i].id;
         this.circles[j].link = this.nextBridgeId++;
         this.circles[j].linked = this.circles[i].id;
-        this.circles[j].name = 'switch_in ' + (this.nextCircleId-1);
+        this.circles[j].name = 'switch_in ' + this.circles[j].id;
 
         this.createLink(id1, id2, speed, true, loopName);
     }
@@ -552,7 +554,7 @@ export class CanvaComponent implements OnInit {
 		// Convertit les liens pour les envoyer à l'édition
 		let res = [];
 		this.links.forEach((link) => {
-			if (link.bridge) {
+			if (link.bridge && (link.from == id || link.to == id)) {
 				res.push({
 					id: link.id,
 					type: 'bridge'
@@ -671,7 +673,7 @@ export class CanvaComponent implements OnInit {
 		//Convertit réseau modèle édtieur -> simulateur
 		this.network.loops = [];
 		this.network.bridges = [];
-		let switches = [];
+
 		for (let i = 0; i < this.loops.length; i++) {
 			const loop = this.loops[i];
 			this.network.loops.push({
@@ -685,16 +687,15 @@ export class CanvaComponent implements OnInit {
 				const circle = this.getCircle(link.from);
 				let elt = {
 					type: circle.type,
-					name: circle.name,
 					x: circle.x,
 					y: circle.y
 				}
 				if (this.isSwitch(circle.id)) {
-					switches.push(circle.id);
 					elt['pods'] = [];
 					elt['id_bridge'] = circle.link;
 				} else {
 					elt['pods'] = {
+                        name: circle.name,
 						max: circle.max_pods,
 						count: circle.type == 'station' ? 0: circle.max_pods
 					};
@@ -715,28 +716,44 @@ export class CanvaComponent implements OnInit {
 					}
 				});
 			});
-			this.links.forEach((link) => {
-				if (link.bridge && link.from in switches && link.to in switches) {
-					this.network.bridges.push({
-						name: 'test',
-						section: {
-							speed: link.speed,
-							path: {
-								type: 'line'
-							}
-						},
-						pods: []
-					});
-				}
-			});
 		}
+        this.links.forEach((link) => {
+            if (link.bridge) {
+                this.network.bridges.push({
+                    name: 'test',
+                    section: {
+                        speed: link.speed,
+                        path: {
+                            type: 'line'
+                        }
+                    },
+                    pods: []
+                });
+            }
+        });
 		this.networkService.updateNetwork(this.network);
 	}
+    
+    centerCircles() {
+        let centerX = 0;
+        let centerY = 0;
+        this.circles.forEach((circle) => {
+            centerX += circle.x;
+            centerY += circle.y;
+        });
+        centerX = centerX / this.circles.length - this.canvaWidth / 2;
+        centerY = centerY / this.circles.length - this.canvaHeight / 2;
+        for (let i = 0; i < this.circles.length; i++) {
+            this.circles[i].x -= centerX;
+            this.circles[i].y -= centerY;
+        }
+    }
     
     convertFromNetwork(network) {
         this.network = Object.assign({}, network);
         this.network.loops = [];
         this.network.bridges = [];
+        this.networkService.updateNetwork(this.network);
         
         let bridges = [];
         for (let i = 0; i < network.bridges.length; i++)
@@ -764,12 +781,14 @@ export class CanvaComponent implements OnInit {
                     this.createLink(lastId, firstId, section.speed, false, loop.name);
             });
         });
+        
+        this.centerCircles();
 
         for (let k = 0; k < bridges.length; k++) {
             const i = bridges[k][0];
             const j = bridges[k][1];
             const bridge = network.bridges[k];
-            this.linkBridge(i, j, bridge.speed, null);
+            this.linkBridge(i, j, bridge.section.speed, null);
         }
     }
 
