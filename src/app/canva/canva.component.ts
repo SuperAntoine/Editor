@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnInit, HostListener } from '@angular/core';
 import { Subscription } from 'rxjs-compat/Subscription';
 import { NetworkService } from '../services/network.service';
  
@@ -9,6 +9,11 @@ import { NetworkService } from '../services/network.service';
 })
 export class CanvaComponent implements OnInit {
 
+    @HostListener('window:resize', ['$event'])
+    onResize(event) {
+        this.canvaHeight = window.innerHeight - 85;
+        this.canvaWidth = window.innerWidth - 480;
+    }
 	@ViewChild('canvas', { static: true })
     canvas: ElementRef<HTMLCanvasElement>;
 	canvasElement; //Elément canvas
@@ -26,8 +31,8 @@ export class CanvaComponent implements OnInit {
 	goToLinkSubscription: Subscription;
     jsonSubcription: Subscription;
 	
-    canvaWidth = 800;
-    canvaHeight = 600;
+    canvaWidth;
+    canvaHeight;
 	network: any; //Réseau
 	fontSize: number = 10; //Taille de la police
 	circles: any[]; //Liste des cercles
@@ -50,6 +55,8 @@ export class CanvaComponent implements OnInit {
   constructor(private networkService: NetworkService) { }
 
   ngOnInit() {		
+        this.canvaHeight = window.innerHeight - 85;
+        this.canvaWidth = window.innerWidth - 480;
 		this.canvasElement = document.querySelector('canvas');
 		//Récupération du contexte
 		this.ctx = this.canvas.nativeElement.getContext('2d');
@@ -338,7 +345,8 @@ export class CanvaComponent implements OnInit {
 			//Affichage du texte
             if (!this.isSwitch(circle.id)) {
                 this.ctx.fillStyle = 'black';
-                this.ctx.fillText(circle.name, circle.x, circle.y + circle.r * 2);
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(circle.name, circle.x, circle.y + circle.r + 10);
                 this.ctx.closePath();
             }
 		});
