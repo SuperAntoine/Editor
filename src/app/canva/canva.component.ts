@@ -68,33 +68,9 @@ export class CanvaComponent implements OnInit {
 		}
 		
 		//Gestion du zoom avec la molette
-		document.body.onwheel = function(event) {
-			let shift = -1 * Math.sign(event.deltaY);
-			if (shift > 0 || y.fontSize > 2) {
-				y.fontSize += shift;
-				y.scaleFont();
-				y.zoom += shift;
-			}
-			
-			for (let i = 0; i < y.circles.length; i++) 
-				if (shift > 0 || y.circles[i].r > 2)
-					y.circles[i].r += shift;
-				
-			let centerX = 0;
-			let centerY = 0;
-			y.circles.forEach((circle) => {
-				centerX += circle.x;
-				centerY += circle.y;
-			});
-			centerX /= y.circles.length;
-			centerY /= y.circles.length;
-				
-			for (let i = 0; i < y.circles.length; i++) {
-				const circle = y.circles[i];
-				if (shift > 0 || circle.r > 2)
-					y.circles[i] = y.moveCircle(circle, centerX, centerY, shift, true);
-			}
-			y.update();
+		document.getElementById("canvas").onwheel = function(event) {
+			y.processZoom(-1 * Math.sign(event.deltaY));
+            y.update();
 		}
 		
 		//Observables
@@ -137,17 +113,22 @@ export class CanvaComponent implements OnInit {
 						if (link.id == elt.id) {
 							delete elt.from_name;
 							delete elt.to_name;
+                            const currentLength = this.links[i].length;
 							this.links[i] = elt;
-							if (elt.old_length != elt.length) {
-								const circle1 = this.getCircle(link.from);
-								const circle2 = this.getCircle(link.to);
+							if (elt.old_length != elt.length && currentLength != elt.length) {
+								let circle1 = this.getCircle(link.from);
+								let circle2 = this.getCircle(link.to);
 								const centerX = (circle1.x + circle2.x) / 2;
 								const centerY = (circle1.y + circle2.y) / 2;
 								const shift = (elt.length - elt.old_length) / 2;
 								const i = this.circles.indexOf(circle1);
 								const j = this.circles.indexOf(circle2);
-								this.circles[i] = this.moveCircle(circle1, centerX, centerY, shift, false);
-								this.circles[j] = this.moveCircle(circle2, centerX, centerY, shift, false);
+								this.circles[i] = this.noZoom(() => {
+                                    return this.moveCircle(circle1, centerX, centerY, shift, -1);
+                                });
+								this.circles[j] = this.noZoom(() => {
+                                    return this.moveCircle(circle2, centerX, centerY, shift, -1);
+                                });
 							}
 						}
 					}
@@ -215,6 +196,35 @@ export class CanvaComponent implements OnInit {
             }
         );
 	}
+    
+    processZoom(shift: number) {
+        this.zoom += shift;
+        
+        for (let i = 0; i < this.circles.length; i++) 
+            if (shift > 0 || this.circles[i].r > 2)
+                this.circles[i].r += shift;
+            
+        let centerX = 0;
+        let centerY = 0;
+        this.circles.forEach((circle) => {
+            centerX += circle.x;
+            centerY += circle.y;
+        });
+        centerX /= this.circles.length;
+        centerY /= this.circles.length;
+        let norms = [];
+        this.circles.forEach((circle) => {
+            norms.push(this.distance(centerX, centerY, circle.x, circle.y));
+        });
+        const max = Math.max.apply(null, norms);
+            
+        for (let i = 0; i < this.circles.length; i++) {
+            const circle = this.circles[i];
+            if (circle.r > 2) {
+                this.circles[i] = this.moveCircle(circle, centerX, centerY, shift, max);
+            }
+        }
+    }
     
     linkBridge(i: number, j: number, speed: number, bridgeName: string, loopName: string) {
         const id1 = this.circles[i].id;
@@ -490,23 +500,35 @@ export class CanvaComponent implements OnInit {
 		//Renvoie la distance entre deux points
 		return Math.sqrt((x2-x1)**2 + (y2-y1)**2);
 	}
+    
+    zoomTo(zoom: number) {
+        const shift = Math.sign(zoom - this.zoom);
+        while (this.zoom != zoom)
+            this.processZoom(shift);
+    }
+    
+    noZoom(func) {
+        const oldZoom = this.zoom;
+        this.zoomTo(0);
+		const res = func(); 
+        this.zoomTo(oldZoom);
+        return res;
+    }
 	
 	distanceCircles(id1: number, id2: number) {
-		const circle1 = this.getCircle(id1);
-		const circle2 = this.getCircle(id2);
-		return this.distance(circle1.x, circle1.y, circle2.x, circle2.y) / (1 + this.zoom / this.baseRadius); //Ne marche pas
-		//TODO : 
-		//quand zoom + crée lien: même length que si on avait pas zoomé
-		//quand zoom + déplace: même length que si on avait pas zoomé
-		//quand zoom + modifie length : bon déplacements pour que quand zoom revient à 0, length est la vraie length
+        return this.noZoom(() => {
+            const circle1 = this.getCircle(id1);
+            const circle2 = this.getCircle(id2);
+            return this.distance(circle1.x, circle1.y, circle2.x, circle2.y); 
+        });
 	}
 	
-	moveCircle(circle, centerX: number, centerY: number, shift: number, scaling: boolean) {
+	moveCircle(circle, centerX: number, centerY: number, shift: number, max: number) {
 		const angle = this.angle(circle.x, circle.y, centerX, centerY);
 		const norm = this.distance(circle.x, circle.y, centerX, centerY);
 		let scale = 1; 
-		if (scaling)
-			scale = norm / (this.baseRadius + this.zoom);
+		if (max > -1)
+			scale = norm / max
 		let side = 1;
 		if (circle.x < centerX)
 			side = -1
@@ -655,9 +677,7 @@ export class CanvaComponent implements OnInit {
 					for (let i = 0; i < this.links.length; i++) {
 						const link = this.links[i];
 						if (link.from == circle.id || link.to == circle.id) {
-							let id = link.to;
-							if (link.to == circle.id)
-								id = link.from;
+							let id = link.to == circle.id ? link.from: link.to;
 							this.links[i].length = this.distanceCircles(id, circle.id);
 						}
 					}
