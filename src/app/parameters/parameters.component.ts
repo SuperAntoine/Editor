@@ -15,6 +15,7 @@ export class ParametersComponent implements OnInit {
 	editedElementSubscription: Subscription;
 	editedElement: any;
     maxSpeed: number;
+    tempLength: number;
 
   constructor(private networkService: NetworkService) { }
 

@@ -676,6 +676,7 @@ export class CanvaComponent implements OnInit {
 						if (link.from == circle.id || link.to == circle.id) {
 							let id = link.to == circle.id ? link.from: link.to;
 							this.links[i].length = this.distanceCircles(id, circle.id);
+                            this.links[i].old_length = this.distanceCircles(id, circle.id);
 						}
 					}
 				} else {
