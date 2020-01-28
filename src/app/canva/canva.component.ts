@@ -126,7 +126,7 @@ export class CanvaComponent implements OnInit {
 		// Réception de l'élément modifié
 		this.editedSubscription = this.networkService.editedSubject.subscribe(
 			(elt: any) => {
-				if (elt.hasOwnProperty('name')) {
+				if (elt.hasOwnProperty('x')) {
 					for (let i = 0; i < this.circles.length; i++) 
 						if (this.circles[i].id == elt.id)
 							this.circles[i] = elt;
@@ -203,7 +203,7 @@ export class CanvaComponent implements OnInit {
 					link.to_name = this.getCircle(link.to).name;
 				}
 				link.old_length = link.length;
-				this.networkService.editElement(link, []);
+				this.networkService.emitEditedElementSubject({ elt: link, links: []});
 			}
 		);
         // Importation d'un réseau
@@ -216,7 +216,7 @@ export class CanvaComponent implements OnInit {
         );
 	}
     
-    linkBridge(i: number, j: number, speed: number, loopName: string) {
+    linkBridge(i: number, j: number, speed: number, bridgeName: string, loopName: string) {
         const id1 = this.circles[i].id;
         const id2 = this.circles[j].id;
         
@@ -227,7 +227,7 @@ export class CanvaComponent implements OnInit {
         this.circles[j].linked = this.circles[i].id;
         this.circles[j].name = 'switch_in ' + this.circles[j].id;
 
-        this.createLink(id1, id2, speed, true, loopName);
+        this.createLink(id1, id2, speed, true, bridgeName, loopName);
     }
     
     createCircle(x: number, y: number, max_pods: number, name: string, type: string) {
@@ -248,7 +248,7 @@ export class CanvaComponent implements OnInit {
             this.circles.push(elt2);
             
             const n = this.circles.length - 1;
-            this.linkBridge(n-1, n, 16.67, null);
+            this.linkBridge(n-1, n, 16.67, null, null);
         } else {
             elt['name'] = name != null ? name: type + ' ' + this.nextCircleId.toString();
             elt['type'] = type;
@@ -356,6 +356,13 @@ export class CanvaComponent implements OnInit {
                 this.ctx.moveTo(circle2.x, circle2.y);
                 this.ctx.lineTo(circle2.x + Math.cos(angle + Math.PI/3) * coef, circle2.y + Math.sin(angle + Math.PI/3) * coef);
                 this.ctx.stroke();
+            } else {
+                const centerX = (circle1.x + circle2.x) / 2;
+                const centerY = (circle1.y + circle2.y) / 2;
+                this.ctx.fillStyle = 'black';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(link.name, centerX, centerY);
+                this.ctx.closePath();
             }
             
 			this.ctx.closePath();
@@ -450,11 +457,12 @@ export class CanvaComponent implements OnInit {
 		return circle.type == 'switch_in' || circle.type == 'switch_out';
 	}
 	
-	createLink(id1: number, id2: number, speed: number, bridge: boolean, loopName: string) {
+	createLink(id1: number, id2: number, speed: number, bridge: boolean, bridgeName: string, loopName: string) {
 		//Crée un nouveau lien
 		// TODO : ne pas pouvoir linker des switch de boucles différentes
 		const b = !bridge && this.isSwitch(id1) && this.isSwitch(id2) && this.getCircle(id1).linked == id2;
-		if (!b && id1 != id2 && (bridge || !this.alreadyLinked(id1, id2))) {
+		const name = bridgeName != null ? bridgeName: 'bridge ' + this.nextBridgeId;
+        if (!b && id1 != id2 && (bridge || !this.alreadyLinked(id1, id2))) {
 			this.links.push({
 				id: this.nextLinkId++,
 				from: id1,
@@ -462,7 +470,8 @@ export class CanvaComponent implements OnInit {
 				inLoop: false,
 				speed: speed,
 				length: this.distanceCircles(id1, id2),
-				bridge: bridge
+				bridge: bridge,
+                name: bridge ? name: null
 			});
 		}
 		if (this.linking)
@@ -557,7 +566,8 @@ export class CanvaComponent implements OnInit {
 			if (link.bridge && (link.from == id || link.to == id)) {
 				res.push({
 					id: link.id,
-					type: 'bridge'
+					type: 'bridge',
+                    name: link.name
 				});
 			} else if (link.from == id) {
 				const to = this.getCircle(link.to).name;
@@ -589,10 +599,10 @@ export class CanvaComponent implements OnInit {
 					if (this.linkingFrom == -1)
 						this.linkingFrom = circle.id;
 					else 
-						this.createLink(this.linkingFrom, circle.id, 16.67, false, null);
+						this.createLink(this.linkingFrom, circle.id, 16.67, false, null, null);
 				} else if (this.editing) {
 					const links = this.convertLinks(circle.id);
-					this.networkService.editElement(circle, links);
+					this.networkService.editElement({ elt: circle, links: links });
 				}
 				else if (this.removing)
 					this.removeCircle(circle.id);
@@ -776,9 +786,9 @@ export class CanvaComponent implements OnInit {
             let i = firstId;
             loop.sections.forEach((section) => {
                 if (i < lastId)
-                    this.createLink(i++, i, section.speed, false, loop.name);
+                    this.createLink(i++, i, section.speed, false, null, loop.name);
                 else
-                    this.createLink(lastId, firstId, section.speed, false, loop.name);
+                    this.createLink(lastId, firstId, section.speed, false, null, loop.name);
             });
         });
         
@@ -788,7 +798,7 @@ export class CanvaComponent implements OnInit {
             const i = bridges[k][0];
             const j = bridges[k][1];
             const bridge = network.bridges[k];
-            this.linkBridge(i, j, bridge.section.speed, null);
+            this.linkBridge(i, j, bridge.section.speed, bridge.name, null);
         }
     }
 

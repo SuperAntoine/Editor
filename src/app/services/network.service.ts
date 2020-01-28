@@ -11,7 +11,6 @@ export class NetworkService {
 	editingSubject = new Subject<boolean>();
 	editing: boolean;
 	editedElementSubject = new Subject<Object>();
-	editedElement: Object;
 	editedSubject = new Subject<Object>();
 	removingSubject = new Subject<boolean>();
 	removing: boolean;
@@ -45,8 +44,8 @@ export class NetworkService {
 		this.editingSubject.next(this.editing);
 	}
 	
-	emitEditedElementSubject() {
-		this.editedElementSubject.next(this.editedElement);
+	emitEditedElementSubject(elt: Object) {
+		this.editedElementSubject.next(elt);
 	}
 	
 	emitEditedSubject(elt: Object) {
@@ -125,21 +124,13 @@ export class NetworkService {
 	
 	toggleEdit() {
 		this.editing = !this.editing;
-		if (!this.editing)
-			this.editElement(null, null);
 		this.emitEditingSubject();
 	}
-	
-	editElement(elt: Object, links: any[]) {
-		if (elt == null)
-			this.editedElement = null;
-		else
-			this.editedElement = {
-				elt: elt,
-				links: links
-			};
-		this.emitEditedElementSubject();
-	}
+    
+    editElement(elt: Object) {
+        this.toggleEdit();
+        this.emitEditedElementSubject(elt);
+    }
 	
 	addElement(type: string) {
 		this.newElement = type;

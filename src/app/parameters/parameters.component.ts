@@ -29,6 +29,7 @@ export class ParametersComponent implements OnInit {
 		this.editedElementSubscription = this.networkService.editedElementSubject.subscribe(
 			(editedElement: Object) => {
 				this.editedElement = editedElement;
+                console.log(this.editedElement);
 			}
 		);
   }
@@ -38,7 +39,6 @@ export class ParametersComponent implements OnInit {
 			this.networkService.updateNetwork(this.network);
 		else {
 			this.networkService.emitEditedSubject(this.editedElement.elt);
-			this.networkService.toggleEdit();
 			this.editedElement = null;
 		}
 	}

@@ -17,12 +17,25 @@
         </div>
     </div>
     <div *ngIf="editedElement != null">
-        <div *ngIf="editedElement.elt.hasOwnProperty('name')">
+        <div *ngIf="editedElement.elt.hasOwnProperty('x')">
             <h2 class="text-center">{{ editedElement.elt.name }} parameters</h2>
             <div class="form-group">
+                <label for="max_pods">Coordinates</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="x">x</span>
+                    </div>
+                    <input type="number" id="x" class="form-control" name="x" min="0" max="800" [(ngModel)]="editedElement.elt.x" required>
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="y">y</span>
+                    </div>
+                    <input type="number" id="y" class="form-control" name="y" min="0" max="600" [(ngModel)]="editedElement.elt.y" required>
+                </div>
                 <div *ngIf="editedElement.elt.type == 'station' || editedElement.elt.type == 'shed'">
                     <label for="name">Name</label>
                     <input type="text" id="name" class="form-control" name="name" [(ngModel)]="editedElement.elt.name" required>
+                </div>
+                <div *ngIf="editedElement.elt.hasOwnProperty('max_pods')">
                     <label for="max_pods">Pod capacity</label>
                     <input type="number" id="max_pods" class="form-control" name="max_pods" min="1" [(ngModel)]="editedElement.elt.max_pods" required>
                 </div>
@@ -37,7 +50,7 @@
                     <li class="list-group-item" *ngFor="let link of editedElement.links">
                         <div *ngIf="link.type == 'from'">Section going to {{ link.to }}</div>
                         <div *ngIf="link.type == 'to'">Section coming from {{ link.from }}</div>
-                        <div *ngIf="link.type == 'bridge'">Bridge</div>
+                        <div *ngIf="link.type == 'bridge'">{{ link.name }}</div>
                         <div class="btn-group mr-1" role="group">
                             <button class="btn btn-primary" (click)="goTo(link.id)">Go to</button>
                             <button class="btn btn-danger" *ngIf="link.type != 'bridge'" (click)="removeLink(link.id)">Remove</button>
@@ -46,10 +59,16 @@
                 </ul>
             </div>
         </div>
-        <div *ngIf="!editedElement.elt.hasOwnProperty('name')">
-            <h2 class="text-center">Section paramters</h2>
-            <h3 *ngIf="!editedElement.elt.bridge">Section from {{ editedElement.elt.from_name }} to {{ editedElement.elt.to_name }}</h3>
-            <h3 *ngIf="editedElement.elt.bridge">Bridge from {{ editedElement.elt.from_name }} to {{ editedElement.elt.to_name }}</h3>
+        <div *ngIf="!editedElement.elt.hasOwnProperty('x')">
+            <div *ngIf="!editedElement.elt.bridge">
+                <h2 class="text-center">Section paramters</h2>
+                <h3>Section from {{ editedElement.elt.from_name }} to {{ editedElement.elt.to_name }}</h3>
+            </div>
+            <h2 *ngIf="editedElement.elt.bridge">{{ editedElement.elt.name }} parameters</h2>
+            <div *ngIf="editedElement.elt.bridge">
+                <label for="name">Name</label>
+                <input type="text" id="name" class="form-control" name="name" [(ngModel)]="editedElement.elt.name" required>
+            </div>
             <label for="speed">Speed</label>
             <input type="number" id="speed" class="form-control" name="speed" min="0" max="{{ maxSpeed }}" [(ngModel)]="editedElement.elt.speed" required>
             <label for="length">Length (in m)</label>
