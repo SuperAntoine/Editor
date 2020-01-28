@@ -59,7 +59,7 @@
                 </ul>
             </div>
         </div>
-        <div *ngIf="!editedElement.elt.hasOwnProperty('x')">
+        <div class="form-group" *ngIf="!editedElement.elt.hasOwnProperty('x')">
             <div *ngIf="!editedElement.elt.bridge">
                 <h2 class="text-center">Section paramters</h2>
                 <h3>Section from {{ editedElement.elt.from_name }} to {{ editedElement.elt.to_name }}</h3>
