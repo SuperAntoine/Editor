@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { Subscription } from 'rxjs-compat/Subscription';
 import { NetworkService } from '../services/network.service';
 
@@ -15,8 +16,13 @@ export class ToolbarComponent implements OnInit {
 	editing: boolean
 	removingSubscription: Subscription;
 	removing: boolean;
+    networkSubscription: Subscription;
+	network: any;
+    exportSubscription: Subscription;
+    fileUrl;
 
-  constructor(private networkService: NetworkService) { }
+  constructor(private networkService: NetworkService,
+              private sanitizer: DomSanitizer) { }
 
   ngOnInit() {
 		this.linkingSubscription = this.networkService.linkingSubject.subscribe(
@@ -37,6 +43,18 @@ export class ToolbarComponent implements OnInit {
 			}
 		);
 		this.networkService.emitRemovingSubject();
+        
+        this.networkSubscription = this.networkService.networkSubject.subscribe(
+			(network: Object) => {
+				this.network = network;
+			}
+		);
+		this.networkService.emitNetworkSubject();
+        this.exportSubscription = this.networkService.exportSubject.subscribe(
+			() => {
+				this.exportJSON();
+			}
+		);
   }
 	
 	link() {
@@ -88,5 +106,28 @@ export class ToolbarComponent implements OnInit {
             }
         });
     }
+    
+    getFileName() {
+        let res = this.network.name.toLowerCase();
+        return res.replace(/ /g, '_') + '.json';
+        
+    }
+    
+    exportJSON() {
+		let blob = new Blob([JSON.stringify(this.network)], { type: 'application/json' });
+		let url = window.URL.createObjectURL(blob);
+		this.fileUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+        //Lance le téléchargement
+        const fileName = this.getFileName();
+        if (window.navigator && window.navigator.msSaveOrOpenBlob)
+            window.navigator.msSaveOrOpenBlob(blob, fileName);
+        else {
+            let link = document.createElement('a');
+            link.target = '_blank';
+            link.href = window.URL.createObjectURL(blob);
+            link.setAttribute("download", fileName);
+            link.click();
+        }
+	}
 
 }

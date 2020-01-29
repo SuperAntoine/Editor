@@ -31,26 +31,33 @@ export class CanvaComponent implements OnInit {
 	goToLinkSubscription: Subscription;
     jsonSubcription: Subscription;
 	
+    //Variables relatives à l'affichage
     canvaWidth; //Largeur du canvas
     canvaHeight; //Hauteur du canvas
+    fontSize: number = 10; //Taille de la police
+    baseRadius = 10; //Rayon de base d'un cercle
+    factor: number = 1; //Facteur de zoom
+    
+    //Variables décrivant le réseau
 	network: any; //Réseau
-	fontSize: number = 10; //Taille de la police
 	circles: any[]; //Liste des cercles
+    links: any[]; //Liste des liens
+    loops: any[]; //Liste des boucles 
+    
+    //Variables d'id
 	nextCircleId: number; //Prochain id de cercle
-	selected: number; //Vaut l'index du cercle sélectionné, -1 sinon
+    nextLinkId: number; //Prochain id de lien
+    nextLoopId: number; //Prochain id de boucle
+    nextBridgeId: number; //Prochain id de pont
+    
+    //Variables relatives à un événement
 	down: boolean = false; //Vrai s'il y a clique
 	previous: number[]; //Position précédente de la souris
 	linking: boolean; //Vaut vrai si un lien est entrain d'être créé
-	linkingFrom: number; //Origine du lien
-	links: any[]; //Liste des liens
 	editing: boolean; //Vaut vrai si on est entrain d'édier
 	removing: boolean; //Vaut vrai si on est entrain de supprimer
-	nextLinkId: number; //Prochain id de lien
-	loops: any[]; //Liste des boucles 
-	nextLoopId: number; //Prochain id de boucle
-	baseRadius = 10; //Rayon de base d'un cercle
-	nextBridgeId: number; //Prochain id de pont
-    factor: number = 1; //Facteur de zoom
+    selected: number; //Vaut l'index du cercle sélectionné, -1 sinon
+    linkingFrom: number; //Origine du lien
 
   constructor(private networkService: NetworkService) { }
 
@@ -188,7 +195,11 @@ export class CanvaComponent implements OnInit {
         // Réception de l'ordre d'édition d'une sections
 		this.goToLinkSubscription = this.networkService.goToLinkSubject.subscribe(
 			(id: number) => {
-                let link = this.getLink(id);
+                let link;
+                this.links.forEach((linkElt) => {
+                    if (linkElt.id == id)
+                        link = linkElt;
+                });
 				if (link.type != 'bridge') {
                     //Si ce n'est pas un pont on voudra afficher les noms des cercles connectés
 					link.from_name = this.getCircle(link.from).name;
@@ -839,7 +850,7 @@ export class CanvaComponent implements OnInit {
         this.links.forEach((link) => {
             if (link.bridge) {
                 this.network.bridges.push({
-                    name: 'test',
+                    name: link.name,
                     section: {
                         speed: link.speed,
                         path: {
