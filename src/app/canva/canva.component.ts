@@ -113,11 +113,13 @@ export class CanvaComponent implements OnInit {
 		this.editedSubscription = this.networkService.editedSubject.subscribe(
 			(elt: any) => {
 				if (elt.hasOwnProperty('x')) {
+                    //Cas où elt est un cercle
 					for (let i = 0; i < this.circles.length; i++) 
 						if (this.circles[i].id == elt.id)
 							this.circles[i] = elt;
 				}
 				else {
+                    //Cas où elt est un lien
 					for (let i = 0; i < this.links.length; i++) {
 						const link = this.links[i];
 						if (link.id == elt.id) {
@@ -125,6 +127,7 @@ export class CanvaComponent implements OnInit {
 							delete elt.to_name;
 							this.links[i] = elt;
 							if (elt.old_length != elt.length) {
+                                //Si la longueur a été modifiée, il faut déplacer les cercles du liens
 								let circle1 = this.getCircle(link.from);
 								let circle2 = this.getCircle(link.to);
 								const centerX = (circle1.x + circle2.x) / 2;
@@ -185,12 +188,9 @@ export class CanvaComponent implements OnInit {
         // Réception de l'ordre d'édition d'une sections
 		this.goToLinkSubscription = this.networkService.goToLinkSubject.subscribe(
 			(id: number) => {
-				let link;
-				this.links.forEach((linkElt) => {
-					if (linkElt.id == id)
-						link = linkElt;
-				});
+                let link = this.getLink(id);
 				if (link.type != 'bridge') {
+                    //Si ce n'est pas un pont on voudra afficher les noms des cercles connectés
 					link.from_name = this.getCircle(link.from).name;
 					link.to_name = this.getCircle(link.to).name;
 				}
@@ -221,6 +221,7 @@ export class CanvaComponent implements OnInit {
             r: this.baseRadius * this.factor
         };
         if (type == 'bridge') {
+            //Quand on crée un pont, on crée aussi un deuxième cercle et on le lie
             elt['type'] = 'switch_in';
             this.circles.push(elt);
             
@@ -233,6 +234,7 @@ export class CanvaComponent implements OnInit {
             const n = this.circles.length - 1;
             this.linkBridge(n-1, n, 16.67, null, null);
         } else {
+            //Cas d'un non-switch
             elt['name'] = name != null ? name: type + ' ' + this.nextCircleId.toString();
             elt['type'] = type;
             elt['max_pods'] = max_pods;
@@ -252,20 +254,15 @@ export class CanvaComponent implements OnInit {
     
     //Déplace un cercle selon un point de repère
     moveCircle(circle, centerX: number, centerY: number, shift: number, max: number) {
-        
 		const angle = this.angle(circle.x, circle.y, centerX, centerY);
 		const norm = this.distance(circle.x, circle.y, centerX, centerY);
-		let scale = 1; 
-		if (max > -1)
-			scale = norm / max
-        else
-            scale = this.factor;
-		let side = 1;
-		if (circle.x < centerX)
-			side = -1
+        
+		const scale = max > -1 ? norm / max: this.factor; 
+		const side = circle.x < centerX? -1: 1;
 		let coef = shift * side * scale;
         if (max > -1)
             coef *= 10;
+        
 		circle.x += Math.cos(angle) * coef;
 		circle.y += Math.sin(angle) * coef;
 		return circle;
@@ -285,6 +282,7 @@ export class CanvaComponent implements OnInit {
 					}
 				}
 				if (circle.type == 'switch_in' || circle.type == 'switch_out')
+                    //Dans le cas d'un bridge on supprime aussi l'autre switch
 					this.removeCircle(circle.linked);
 				if (this.removing)
 					this.networkService.toggleRemove();
@@ -298,18 +296,25 @@ export class CanvaComponent implements OnInit {
 		for (let i = 0; i < this.circles.length; i++) {
 		  const circle = this.circles[i];
 			if (this.distance(circle.x, circle.y, x, y) < circle.r) {
+                //Cas où on a cliqué sur un cercle
 				if (this.linking) {
+                    //Cas où on veut créer un lien
 					if (this.linkingFrom == -1)
+                        //Si on a cliqué sur le cercle source
 						this.linkingFrom = circle.id;
 					else 
+                        //Si on a cliqué sur le cercle cible
 						this.createLink(this.linkingFrom, circle.id, 16.67, false, null, null);
 				} else if (this.editing) {
+                    //Cas où on veut éditer un cercle
 					const links = this.convertLinks(circle.id);
 					this.networkService.editElement({ elt: circle, links: links });
 				}
 				else if (this.removing)
+                    //Cas où on veut supprimer un cerlce
 					this.removeCircle(circle.id);
 				else
+                    //Cas où on veut juste déplacer un cercle
 					this.selected = i;
 				found = true;
 			}
@@ -432,12 +437,14 @@ export class CanvaComponent implements OnInit {
 		let res = [];
 		this.links.forEach((link) => {
 			if (link.bridge && (link.from == id || link.to == id)) {
+                //Cas d'un pont
 				res.push({
 					id: link.id,
 					type: 'bridge',
                     name: link.name
 				});
 			} else if (link.from == id) {
+                //Cas d'une section arrivante
 				const to = this.getCircle(link.to).name;
 				res.push({
 					id: link.id,
@@ -446,6 +453,7 @@ export class CanvaComponent implements OnInit {
 				});
 			}
 			else if (link.to == id) {
+                //Cas d'une section partante
 				const from = this.getCircle(link.from).name;
 				res.push({
 					id: link.id,
@@ -464,13 +472,14 @@ export class CanvaComponent implements OnInit {
 		for (let i = 0; i < this.links.length; i++) {
 			const link = this.links[i];
 			if (!link.inLoop && !link.bridge) {
-				let stop = false;
-				let isLoop = false;
-				let links = Object.assign([], this.links);
-				let next = link.to;
-				let way = [i];
+				let stop = false; //Vaut vrai quand le parcours est terminé
+				let isLoop = false; //Vaut vrai si une boucle doit être créée
+				let links = Object.assign([], this.links); //Liste des liens à parcourir
+				let next = link.to; //Prochain lien à parcourir
+				let way = [i]; //On construit la liste des liens de la boucle
 				const id = link.from;
 				
+                //On dévient tous les liens comme non marqués
 				for (let j = 0; j < links.length; j++)
 					links[j].checked = false;
 				links[i].checked = true;
@@ -583,6 +592,7 @@ export class CanvaComponent implements OnInit {
                 this.ctx.lineTo(circle2.x + Math.cos(angle + Math.PI/3) * coef, circle2.y + Math.sin(angle + Math.PI/3) * coef);
                 this.ctx.stroke();
             } else {
+                //Affichage du nom du bridge
                 const centerX = (circle1.x + circle2.x) / 2;
                 const centerY = (circle1.y + circle2.y) / 2;
                 this.ctx.fillStyle = 'black';
@@ -615,6 +625,7 @@ export class CanvaComponent implements OnInit {
     
     //Gère le zoom
     processZoom(shift: number) {   
+        //On commence par calculer le centre de gravité des cercles
         let centerX = 0;
         let centerY = 0;
         this.circles.forEach((circle) => {
@@ -623,12 +634,17 @@ export class CanvaComponent implements OnInit {
         });
         centerX /= this.circles.length;
         centerY /= this.circles.length;
+        
+        //On calcule ensuite la distance maximale entre un cercle et le centre de gravité
         let norms = [];
         this.circles.forEach((circle) => {
             norms.push(this.distance(centerX, centerY, circle.x, circle.y));
         });
         const max = Math.max.apply(null, norms);
             
+        //Enfin on déplace tous les cercles d'un certain ratio par rapport au centre de gravité
+        //D'après le théorème de Thalès le ratio est le même pour tous
+        //Même pour les distances entre les cercles proches
         let first: boolean = true;
         let fact: number;
         let norm, norm2;
@@ -639,11 +655,14 @@ export class CanvaComponent implements OnInit {
                     norm = this.distance(circle.x, circle.y, centerX, centerY);
                 this.circles[i] = this.moveCircle(circle, centerX, centerY, shift, max);
                 if (first) {
+                    //On récupère le facteur de cette étape de zoom
                     norm2 = this.distance(circle.x, circle.y, centerX, centerY);
                     fact = norm2 / norm;
+                    //On ajoute au facteur de zoom total
                     this.factor *= fact;
                     first = false;
                 }
+                //On change aussi le rayon des cercles
                 circle.r *= fact;
             }
         }
@@ -769,6 +788,7 @@ export class CanvaComponent implements OnInit {
 		this.network.loops = [];
 		this.network.bridges = [];
 
+        //On parcourt les boucles
 		for (let i = 0; i < this.loops.length; i++) {
 			const loop = this.loops[i];
 			this.network.loops.push({
@@ -777,7 +797,9 @@ export class CanvaComponent implements OnInit {
 				sections: [],
 				pods: []
 			});
+            //On parcourt les liens de cette boucle
 			loop.loop.forEach((linkId) => {
+                //Pour chaque lien on ajoute le cercle source
 				const link = this.getLink(linkId);
 				const circle = this.getCircle(link.from);
 				let elt = {
@@ -804,6 +826,7 @@ export class CanvaComponent implements OnInit {
 					}
 				}
 				this.network.loops[i].elements.push(elt);
+                //On ajoute ensuite une section
 				this.network.loops[i].sections.push({
 					speed: link.speed,
 					path: {
@@ -812,6 +835,7 @@ export class CanvaComponent implements OnInit {
 				});
 			});
 		}
+        //On parcourt tous les liens qui sont des bridge
         this.links.forEach((link) => {
             if (link.bridge) {
                 this.network.bridges.push({
