@@ -64,7 +64,6 @@ export class CanvaComponent implements OnInit {
   ngOnInit() {		
         this.canvaHeight = window.innerHeight * 0.91;
         this.canvaWidth = window.innerWidth * 0.75;
-        console.log(window.innerHeight);
 		this.canvasElement = document.querySelector('canvas');
 		//Récupération du contexte
 		this.ctx = this.canvas.nativeElement.getContext('2d');
