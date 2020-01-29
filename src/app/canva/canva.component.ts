@@ -655,6 +655,17 @@ export class CanvaComponent implements OnInit {
 		this.ctx.font = this.fontSize.toString() + 'px serif';
 	}
     
+    //Modifie la viewbox du réseau
+    updateViewBox() {
+        this.network.view_box = {
+            x: 0,
+            y: 0,
+            width: this.canvaWidth,
+            height: this.canvaHeight
+        };
+        this.networkService.updateNetwork(this.network);
+    }
+    
 //FONCTIONS D'EVENEMENTS    
     
     //Tente de sélectionner un cercle là où il y a eu un click
@@ -754,6 +765,7 @@ export class CanvaComponent implements OnInit {
 
     //Convertit le réseau modèle édtieur -> simulateur
 	convertNetwork() {
+        this.updateViewBox();
 		this.network.loops = [];
 		this.network.bridges = [];
 
@@ -777,8 +789,8 @@ export class CanvaComponent implements OnInit {
 					elt['pods'] = [];
 					elt['id_bridge'] = circle.link;
 				} else {
+                    elt['name'] = circle.name;
 					elt['pods'] = {
-                        name: circle.name,
 						max: circle.max_pods,
 						count: circle.type == 'station' ? 0: circle.max_pods
 					};
