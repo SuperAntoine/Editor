@@ -1,15 +1,11 @@
 <div class="btn-toolbar" role="toolbar">
     <div class="btn-group mr-2" role="group">
         <button class="btn btn-primary" (click)="newNetwork()">New network</button>
-        <label class="btn btn-primary">
+        <label style="height: 101%" class="btn btn-primary">
             Import 
             <input type="file" (change)="import($event.target.files)" hidden>
         </label>
-        <button class="btn btn-primary" (click)="export()">Export
-            <!--<div>
-                <a [href]="fileUrl" download="network.json" *ngIf="fileUrl" hidden>Download</a>
-            </div>-->
-        </button>
+        <button class="btn btn-primary" (click)="export()">Export</button>
     </div>
     <div class="btn-group mr-2" role="group">
         <button class="btn btn-primary" (click)="addElement('station')">Add station</button>

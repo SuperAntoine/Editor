@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Subscription } from 'rxjs-compat/Subscription';
 import { NetworkService } from '../services/network.service';
@@ -9,16 +9,23 @@ import { NetworkService } from '../services/network.service';
   styleUrls: ['./parameters.component.scss']
 })
 export class ParametersComponent implements OnInit {
+    
+    @HostListener('window:resize', ['$event'])
+    onResize(event) {
+        this.width = window.innerWidth * 0.77;
+    }
 
 	networkSubscription: Subscription;
 	network: any;
 	editedElementSubscription: Subscription;
 	editedElement: any;
     maxSpeed: number;
+    width;
 
   constructor(private networkService: NetworkService) { }
 
   ngOnInit() {
+        this.width = window.innerWidth * 0.77;
 		this.networkSubscription = this.networkService.networkSubject.subscribe(
 			(network: Object) => {
 				this.network = network;

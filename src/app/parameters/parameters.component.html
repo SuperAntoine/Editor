@@ -1,4 +1,4 @@
-<form style = "width: 440px" (ngSubmit)="onSave(f)" #f="ngForm">
+<form style="width: {{ width }}px" (ngSubmit)="onSave(f)" #f="ngForm">
     <div *ngIf="editedElement == null">
         <h2 class="text-center">{{ network.name }} parameters</h2>
         <div class="form-group">
@@ -61,7 +61,7 @@
         </div>
         <div class="form-group" *ngIf="!editedElement.elt.hasOwnProperty('x')">
             <div class="text-center" *ngIf="!editedElement.elt.bridge">
-                <h2 class="text-center">Section paramters</h2>
+                <h2>Section paramters</h2>
                 <h3>Section from {{ editedElement.elt.from_name }} to {{ editedElement.elt.to_name }}</h3>
             </div>
             <h2 *ngIf="editedElement.elt.bridge">{{ editedElement.elt.name }} parameters</h2>

@@ -11,8 +11,8 @@ export class CanvaComponent implements OnInit {
 
     @HostListener('window:resize', ['$event'])
     onResize(event) {
-        this.canvaHeight = window.innerHeight - 85;
-        this.canvaWidth = window.innerWidth - 480;
+        this.canvaHeight = window.innerHeight * 0.91;
+        this.canvaWidth = window.innerWidth  * 0.75;
     }
 	@ViewChild('canvas', { static: true })
     canvas: ElementRef<HTMLCanvasElement>;
@@ -62,8 +62,9 @@ export class CanvaComponent implements OnInit {
   constructor(private networkService: NetworkService) { }
 
   ngOnInit() {		
-        this.canvaHeight = window.innerHeight - 85;
-        this.canvaWidth = window.innerWidth - 480;
+        this.canvaHeight = window.innerHeight * 0.91;
+        this.canvaWidth = window.innerWidth * 0.75;
+        console.log(window.innerHeight);
 		this.canvasElement = document.querySelector('canvas');
 		//Récupération du contexte
 		this.ctx = this.canvas.nativeElement.getContext('2d');
