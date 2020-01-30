@@ -46,9 +46,9 @@ export class CanvaComponent implements OnInit {
     fontSize: number = 10; //Taille de la police
     baseRadius = 10; //Rayon de base d'un cercle
     factor: number = 1; //Facteur de zoom
-    zoomPower: number = 10;
-    firstResize: boolean = true;
-    options: any;
+    zoomPower: number; //Puissance du zoom
+    firstResize: boolean = true; //Le 1er resize est spécial car on n'update pas
+    options: any; //Différentes options d'affichage
     
     //Variables décrivant le réseau
 	network: any; //Réseau
@@ -111,6 +111,7 @@ export class CanvaComponent implements OnInit {
         this.optionsSubscription = this.networkService.optionsSubject.subscribe(
             (options: any) => {
                 this.options = options;
+                this.zoomPower = options.zoom;
                 this.update();
             }
         );
@@ -293,7 +294,7 @@ export class CanvaComponent implements OnInit {
 		const side = circle.x < centerX? -1: 1;
 		let coef = shift * side * scale;
         if (max > -1)
-            coef *= this.zoomPower;
+            coef *= this.zoomPower * this.circles.length;
         
 		circle.x += Math.cos(angle) * coef;
 		circle.y += Math.sin(angle) * coef;

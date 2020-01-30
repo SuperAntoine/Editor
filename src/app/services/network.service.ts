@@ -124,7 +124,8 @@ export class NetworkService {
             station: true,
             shed: true,
             bridge: true,
-            loop: true
+            loop: true,
+            zoom: 10
         };
     }
     

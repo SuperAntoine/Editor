@@ -1,18 +1,32 @@
 <form>
-    <div class="form-check ml-4 mt-2">
-        <input type="checkbox" id="station" class="form-check-input" name="station" [(ngModel)]="options.station" (change)="updateOptions()">
-        <label for="station" class="form-check-label">Display stations name</label>
+    <div class="form-group row ml-1 mt-2">
+        <label for="station" class="col-8 col-form-label">Display stations name</label>
+        <div class="col">
+            <input type="checkbox" id="station" class="form-control mt-2" name="station" [(ngModel)]="options.station" (change)="updateOptions()">
+        </div>
     </div>
-    <div class="form-check ml-4 mt-2">
-        <input type="checkbox" id="shed" class="form-check-input" name="shed" [(ngModel)]="options.shed" (change)="updateOptions()">
-        <label for="shed" class="form-check-label">Display sheds name</label>
+    <div class="form-group row ml-1 mt-2">
+        <label for="shed" class="col-8 col-form-label">Display sheds name</label>
+        <div class="col">
+            <input type="checkbox" id="shed" class="form-control mt-2" name="shed" [(ngModel)]="options.shed" (change)="updateOptions()">
+        </div>
     </div>
-    <div class="form-check ml-4 mt-2">
-        <input type="checkbox" id="bridge" class="form-check-input" name="bridge" [(ngModel)]="options.bridge" (change)="updateOptions()">
-        <label for="bridge" class="form-check-label">Display bridges name</label>
+    <div class="form-group row ml-1 mt-2">
+        <label for="bridge" class="col-8 col-form-label">Display bridges name</label>
+        <div class="col">
+            <input type="checkbox" id="bridge" class="form-control mt-2" name="bridge" [(ngModel)]="options.bridge" (change)="updateOptions()">
+        </div>    
     </div>
-    <div class="form-check ml-4 mt-2">
-        <input type="checkbox" id="loop" class="form-check-input" name="loop" [(ngModel)]="options.loop" (change)="updateOptions()">
-        <label for="loop" class="form-check-label">Display loops name</label>
+    <div class="form-group row ml-1 mt-2">
+        <label for="loop" class="col-8 col-form-label">Display loops name</label>
+        <div class="col">
+            <input type="checkbox" id="loop" class="form-control mt-2" name="loop" [(ngModel)]="options.loop" (change)="updateOptions()">
+        </div>
+    </div>
+    <div class="form-group row ml-1 mt-2">
+        <label for="zoom" class="col-7 col-form-label">Zoom speed</label>
+        <div class="col-2">
+            <input style="width: 60px;" type="number" id="zoom" class="form-control-sm mt-2" name="zoom" min="1" max="20" [(ngModel)]="options.zoom" (change)="updateOptions()">
+        </div>
     </div>
 </form>

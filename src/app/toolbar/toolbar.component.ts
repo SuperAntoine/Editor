@@ -60,18 +60,26 @@ export class ToolbarComponent implements OnInit {
 			}
 		);
         
+        //Configuration du popper du menu
+        //On utilise une Promise car il doit être visible lorsqu'il est initilialisé sinon il s'affiche mal
+        //On le cache donc dans le then
         this.btn_options = document.querySelector('#btn_options') as HTMLElement;
         this.menu_options = document.querySelector('#menu_options') as HTMLElement;
-        createPopper(this.btn_options, this.menu_options, {
-            placement: 'bottom',
-            modifiers: [
-                {
-                    name: 'offset',
-                    options: {
-                        offset: [0, 8]
+        new Promise((resolve, reject) => {
+            createPopper(this.btn_options, this.menu_options, {
+                placement: 'bottom',
+                modifiers: [
+                    {
+                        name: 'offset',
+                        options: {
+                            offset: [0, 8]
+                        }
                     }
-                }
-            ]
+                ]
+            });
+            resolve();
+        }).then(() => {
+            this.menu_options.setAttribute('data-hide', '');
         });
     }
 	
@@ -109,9 +117,9 @@ export class ToolbarComponent implements OnInit {
     toggleOptions() {
         this.options = !this.options;
         if (this.options) {
-            this.menu_options.setAttribute('data-show', '');
+            this.menu_options.removeAttribute('data-hide');
         } else {
-            this.menu_options.removeAttribute('data-show');
+            this.menu_options.setAttribute('data-hide', '');
         }
     }
 	

@@ -3,17 +3,16 @@
 }
 
 #menu_options {
-    background: #333;
+    background: gray;
     color: white;
     font-weight: bold;
-    padding: 4px 8px;
     font-size: 13px;
-    border-radius: 4px;
-    display: none;
+    display: block;
+    width: 240px;
 }
 
-#menu_options[data-show] {
-    display: block;
+#menu_options[data-hide] {
+    display: none;
 }
 
 #arrow,
@@ -27,7 +26,7 @@
 #arrow::before {
     content: '';
     transform: rotate(45deg);
-    background: #333;
+    background: gray;
 }
 
 #menu_options[data-popper-placement^='top'] > #arrow {
