@@ -9,20 +9,23 @@ import { NetworkService } from '../services/network.service';
 })
 export class CanvaComponent implements OnInit {
 
-	@ViewChild('canvas', { static: true })
-    canvas: ElementRef<HTMLCanvasElement>;
-	canvasElement; //Elément canvas
-	ctx: CanvasRenderingContext2D; //Contexte
-    
     @HostListener('window:resize')
     onResize() {
         this.canvaHeight = Math.floor(window.innerHeight * 0.91);
         this.canvaWidth = Math.floor(window.innerWidth  * 0.75);
         this.canvas.nativeElement.height = this.canvaHeight;
         this.canvas.nativeElement.width = this.canvaWidth;
-        this.centerCircles();
-        this.update();
+        if (!this.firstResize) {
+            this.centerCircles();
+            this.update();
+        } else
+            this.firstResize = false;
     }
+
+	@ViewChild('canvas', { static: true })
+    canvas: ElementRef<HTMLCanvasElement>;
+	canvasElement; //Elément canvas
+	ctx: CanvasRenderingContext2D; //Contexte
 	
 	networkSubscription: Subscription;
 	linkingSubscription: Subscription;
@@ -43,6 +46,7 @@ export class CanvaComponent implements OnInit {
     baseRadius = 10; //Rayon de base d'un cercle
     factor: number = 1; //Facteur de zoom
     zoomPower: number = 10;
+    firstResize: boolean = true;
     
     //Variables décrivant le réseau
 	network: any; //Réseau
@@ -72,6 +76,7 @@ export class CanvaComponent implements OnInit {
 		//Récupération du contexte
 		this.ctx = this.canvas.nativeElement.getContext('2d');
 		this.ctx.textAlign = 'center';
+        this.onResize();
 		
 		this.newNetwork();
 		//Ajout d'événements de la souris
@@ -222,8 +227,6 @@ export class CanvaComponent implements OnInit {
                 this.update();
             }
         );
-        
-        this.onResize();
 	}
     
 //FONCTIONS GERANT LES CERCLES
