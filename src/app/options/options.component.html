@@ -1,0 +1,18 @@
+<form>
+    <div class="form-check ml-4 mt-2">
+        <input type="checkbox" id="station" class="form-check-input" name="station" [(ngModel)]="options.station" (change)="updateOptions()">
+        <label for="station" class="form-check-label">Display stations name</label>
+    </div>
+    <div class="form-check ml-4 mt-2">
+        <input type="checkbox" id="shed" class="form-check-input" name="shed" [(ngModel)]="options.shed" (change)="updateOptions()">
+        <label for="shed" class="form-check-label">Display sheds name</label>
+    </div>
+    <div class="form-check ml-4 mt-2">
+        <input type="checkbox" id="bridge" class="form-check-input" name="bridge" [(ngModel)]="options.bridge" (change)="updateOptions()">
+        <label for="bridge" class="form-check-label">Display bridges name</label>
+    </div>
+    <div class="form-check ml-4 mt-2">
+        <input type="checkbox" id="loop" class="form-check-input" name="loop" [(ngModel)]="options.loop" (change)="updateOptions()">
+        <label for="loop" class="form-check-label">Display loops name</label>
+    </div>
+</form>

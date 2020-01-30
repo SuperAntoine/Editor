@@ -8,13 +8,15 @@ import { AppComponent } from './app.component';
 import { CanvaComponent } from './canva/canva.component';
 import { ToolbarComponent } from './toolbar/toolbar.component';
 import { ParametersComponent } from './parameters/parameters.component';
+import { OptionsComponent } from './options/options.component';
 
 @NgModule({
     declarations: [
         AppComponent,
         CanvaComponent,
         ToolbarComponent,
-        ParametersComponent
+        ParametersComponent,
+        OptionsComponent
     ],
     imports: [
         BrowserModule,

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Subscription } from 'rxjs-compat/Subscription';
+import { createPopper } from '@popperjs/core';
 import { NetworkService } from '../services/network.service';
 
 @Component({
@@ -19,12 +20,15 @@ export class ToolbarComponent implements OnInit {
     networkSubscription: Subscription;
 	network: any;
     exportSubscription: Subscription;
+    options: boolean = false;
     fileUrl;
+    btn_options: HTMLElement;
+    menu_options: HTMLElement;
 
-  constructor(private networkService: NetworkService,
-              private sanitizer: DomSanitizer) { }
+    constructor(private networkService: NetworkService,
+                private sanitizer: DomSanitizer) { }
 
-  ngOnInit() {
+    ngOnInit() {
 		this.linkingSubscription = this.networkService.linkingSubject.subscribe(
 			(linking: boolean) => {
 				this.linking = linking;
@@ -55,7 +59,21 @@ export class ToolbarComponent implements OnInit {
 				this.exportJSON();
 			}
 		);
-  }
+        
+        this.btn_options = document.querySelector('#btn_options') as HTMLElement;
+        this.menu_options = document.querySelector('#menu_options') as HTMLElement;
+        createPopper(this.btn_options, this.menu_options, {
+            placement: 'bottom',
+            modifiers: [
+                {
+                    name: 'offset',
+                    options: {
+                        offset: [0, 8]
+                    }
+                }
+            ]
+        });
+    }
 	
 	link() {
 		if (this.editing)
@@ -87,6 +105,15 @@ export class ToolbarComponent implements OnInit {
 			this.networkService.toggleEdit();
 		this.networkService.toggleRemove();
 	}
+    
+    toggleOptions() {
+        this.options = !this.options;
+        if (this.options) {
+            this.menu_options.setAttribute('data-show', '');
+        } else {
+            this.menu_options.removeAttribute('data-show');
+        }
+    }
 	
 	newNetwork() {
 		this.networkService.newNetwork();

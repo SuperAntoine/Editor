@@ -1,3 +1,4 @@
+<script>declare var $;</script>
 <div class="btn-toolbar" role="toolbar">
     <div class="btn-group mr-2" role="group">
         <button class="btn btn-primary" (click)="newNetwork()">New network</button>
@@ -12,7 +13,7 @@
         <button class="btn btn-primary" (click)="addElement('shed')">Add shed</button>
         <button class="btn btn-primary" (click)="addElement('bridge')">Add bridge</button>
     </div>
-    <div class="btn-group" role="group">
+    <div class="btn-group mr-2" role="group">
         <button class="btn" 
                 [ngClass]="{'btn-primary': !linking, 'btn-warning': linking}"
                 (click)="link()">
@@ -29,4 +30,17 @@
             Remove
         </button>
     </div>
+    <div class="btn-group" role="group">
+        <button id="btn_options" 
+                class="btn"
+                [ngClass]="{'btn-primary': !options, 'btn-warning': options}"
+                (click)="toggleOptions()"
+                aria-describedby="menu_options">
+            Options
+        </button>
+    </div>
+</div>
+<div id="menu_options" role="menu_options">
+    <app-options></app-options>
+    <div id="arrow" data-popper-arrow></div>
 </div>

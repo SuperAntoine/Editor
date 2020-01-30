@@ -22,9 +22,12 @@ export class NetworkService {
 	removeLinkSubject = new Subject<number>();
 	goToLinkSubject = new Subject<number>();
     jsonSubject = new Subject<any>();
+    optionsSubject = new Subject<any>();
+    options: any;
 	
 	init() {
 		this.setNetwork();
+        this.setOptions();
 		this.unlink();
 		this.editing = false;
 		this.emitEditingSubject();
@@ -83,6 +86,10 @@ export class NetworkService {
     emitJsonSubject(network: any) {
         this.jsonSubject.next(network);
     }
+    
+    emitOptionsSubject() {
+        this.optionsSubject.next(this.options);
+    }
 	
 	setNetwork() {
 		this.network = {
@@ -111,6 +118,20 @@ export class NetworkService {
 		this.network = network;
 		this.emitNetworkSubject();
 	}
+    
+    setOptions() {
+        this.options = {
+            station: true,
+            shed: true,
+            bridge: true,
+            loop: true
+        };
+    }
+    
+    updateOptions(options) {
+        this.options = options;
+        this.emitOptionsSubject();
+    }
 	
 	link() {
 		this.linking = true;

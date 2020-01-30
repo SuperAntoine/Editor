@@ -38,6 +38,7 @@ export class CanvaComponent implements OnInit {
 	removeLinkSubscription: Subscription;
 	goToLinkSubscription: Subscription;
     jsonSubcription: Subscription;
+    optionsSubscription: Subscription
 	
     //Variables relatives à l'affichage
     canvaWidth; //Largeur du canvas
@@ -47,6 +48,7 @@ export class CanvaComponent implements OnInit {
     factor: number = 1; //Facteur de zoom
     zoomPower: number = 10;
     firstResize: boolean = true;
+    options: any;
     
     //Variables décrivant le réseau
 	network: any; //Réseau
@@ -104,6 +106,15 @@ export class CanvaComponent implements OnInit {
 			}
 		);
 		this.networkService.emitNetworkSubject();
+        
+        // Synchronisation des options
+        this.optionsSubscription = this.networkService.optionsSubject.subscribe(
+            (options: any) => {
+                this.options = options;
+                this.update();
+            }
+        );
+        this.networkService.emitOptionsSubject();
         
 		// Mise à jour de l'état de liaison
 		this.linkingSubscription = this.networkService.linkingSubject.subscribe(
@@ -589,7 +600,7 @@ export class CanvaComponent implements OnInit {
 			this.ctx.stroke();
 			this.ctx.fill();
 			//Affichage du texte
-            if (!this.isSwitch(circle.id)) {
+            if (!this.isSwitch(circle.id) && ((circle.type == 'station' && this.options.station)) || (circle.type == 'shed' && this.options.shed)) {
                 this.ctx.fillStyle = 'black';
                 this.ctx.textAlign = 'center';
                 this.ctx.fillText(circle.name, circle.x, circle.y + circle.r + 10);
@@ -620,7 +631,7 @@ export class CanvaComponent implements OnInit {
                 this.ctx.moveTo(circle2.x, circle2.y);
                 this.ctx.lineTo(circle2.x + Math.cos(angle + Math.PI/3) * coef, circle2.y + Math.sin(angle + Math.PI/3) * coef);
                 this.ctx.stroke();
-            } else {
+            } else if (this.options.bridge) {
                 //Affichage du nom du bridge
                 const centerX = (circle1.x + circle2.x) / 2;
                 const centerY = (circle1.y + circle2.y) / 2;
@@ -634,22 +645,24 @@ export class CanvaComponent implements OnInit {
 		});
 		
 		//Affiche des boucles
-		this.loops.forEach((loop) => {
-			const n = loop.loop.length;
-			let centerX = 0;
-			let centerY = 0;
-			loop.loop.forEach((linkId) => {
-				const link = this.getLink(linkId);
-				const circle = this.getCircle(link.from);
-				centerX += circle.x;
-				centerY += circle.y;
-			});
-			centerX /= n;
-			centerY /= n;
-			this.ctx.beginPath();
-			this.ctx.fillStyle = 'black';
-			this.ctx.fillText(loop.name, centerX, centerY);
-		});
+        if (this.options != null && this.options.loop) {
+            this.loops.forEach((loop) => {
+                const n = loop.loop.length;
+                let centerX = 0;
+                let centerY = 0;
+                loop.loop.forEach((linkId) => {
+                    const link = this.getLink(linkId);
+                    const circle = this.getCircle(link.from);
+                    centerX += circle.x;
+                    centerY += circle.y;
+                });
+                centerX /= n;
+                centerY /= n;
+                this.ctx.beginPath();
+                this.ctx.fillStyle = 'black';
+                this.ctx.fillText(loop.name, centerX, centerY);
+            });
+        }
 	}
     
     //Gère le zoom
@@ -901,6 +914,7 @@ export class CanvaComponent implements OnInit {
 
     //Convertit le réseau modèle simulateur -> éditeur
     convertFromNetwork(network) {
+        this.networkService.init();
         this.network = Object.assign({}, network);
         this.network.loops = [];
         this.network.bridges = [];
