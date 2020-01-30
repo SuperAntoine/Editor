@@ -215,6 +215,7 @@ export class CanvaComponent implements OnInit {
 					link.to_name = this.getCircle(link.to).name;
 				}
 				link.old_length = link.length;
+                link.old_angle = link.angle;
 				this.networkService.emitEditedElementSubject({ elt: link, links: []});
 			}
 		);
@@ -352,6 +353,13 @@ export class CanvaComponent implements OnInit {
         return this.distance(circle1.x, circle1.y, circle2.x, circle2.y) / this.factor; 
 	}
     
+    //Calcul l'angle entre 2 cerlces
+    angleCircles(id1: number, id2: number) {
+        const circle1 = this.getCircle(id1);
+        const circle2 = this.getCircle(id2);
+        return this.angle(circle1.x, circle1.y, circle2.x, circle2.y);
+    }
+    
 	//Détecte si un les cercles ne sont pas déjà origine ou destination d'un lien
     alreadyLinked(id1, id2) {
 		for (let i = 0; i < this.links.length; i++) {
@@ -399,6 +407,7 @@ export class CanvaComponent implements OnInit {
 				inLoop: false,
 				speed: speed,
 				length: this.distanceCircles(id1, id2),
+                angle: this.angleCircles(id1, id2),
 				bridge: bridge,
                 name: bridge ? name: null
 			});
@@ -740,8 +749,14 @@ export class CanvaComponent implements OnInit {
 						const link = this.links[i];
 						if (link.from == circle.id || link.to == circle.id) {
 							let id = link.to == circle.id ? link.from: link.to;
-							this.links[i].length = this.distanceCircles(id, circle.id);
-                            this.links[i].old_length = this.distanceCircles(id, circle.id);
+                            
+                            const dist = this.distanceCircles(id, circle.id)
+							this.links[i].length = dist;
+                            this.links[i].old_length = dist;
+                            
+                            const angle = this.angleCircles(id, circle.id)
+                            this.links[i].angle = angle;
+                            this.links[i].old_angle = angle;
 						}
 					}
 				} else {
