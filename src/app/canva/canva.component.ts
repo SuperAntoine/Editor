@@ -11,8 +11,13 @@ export class CanvaComponent implements OnInit {
 
     @HostListener('window:resize', ['$event'])
     onResize(event) {
-        this.canvaHeight = window.innerHeight * 0.91;
-        this.canvaWidth = window.innerWidth  * 0.75;
+        new Promise(() => {
+            this.canvaHeight = window.innerHeight * 0.91;
+            this.canvaWidth = window.innerWidth  * 0.75;
+            this.centerCircles();
+        }).then(() => {
+            this.update();
+        });
     }
 	@ViewChild('canvas', { static: true })
     canvas: ElementRef<HTMLCanvasElement>;
@@ -37,6 +42,7 @@ export class CanvaComponent implements OnInit {
     fontSize: number = 10; //Taille de la police
     baseRadius = 10; //Rayon de base d'un cercle
     factor: number = 1; //Facteur de zoom
+    zoomPower: number = 10;
     
     //Variables décrivant le réseau
 	network: any; //Réseau
@@ -59,9 +65,9 @@ export class CanvaComponent implements OnInit {
     selected: number; //Vaut l'index du cercle sélectionné, -1 sinon
     linkingFrom: number; //Origine du lien
 
-  constructor(private networkService: NetworkService) { }
+    constructor(private networkService: NetworkService) { }
 
-  ngOnInit() {		
+    ngOnInit() {		
         this.canvaHeight = window.innerHeight * 0.91;
         this.canvaWidth = window.innerWidth * 0.75;
 		this.canvasElement = document.querySelector('canvas');
@@ -272,7 +278,7 @@ export class CanvaComponent implements OnInit {
 		const side = circle.x < centerX? -1: 1;
 		let coef = shift * side * scale;
         if (max > -1)
-            coef *= 10;
+            coef *= this.zoomPower;
         
 		circle.x += Math.cos(angle) * coef;
 		circle.y += Math.sin(angle) * coef;
@@ -636,45 +642,56 @@ export class CanvaComponent implements OnInit {
     
     //Gère le zoom
     processZoom(shift: number) {   
-        //On commence par calculer le centre de gravité des cercles
-        let centerX = 0;
-        let centerY = 0;
-        this.circles.forEach((circle) => {
-            centerX += circle.x;
-            centerY += circle.y;
-        });
-        centerX /= this.circles.length;
-        centerY /= this.circles.length;
-        
-        //On calcule ensuite la distance maximale entre un cercle et le centre de gravité
-        let norms = [];
-        this.circles.forEach((circle) => {
-            norms.push(this.distance(centerX, centerY, circle.x, circle.y));
-        });
-        const max = Math.max.apply(null, norms);
+        if (this.circles.length == 1) {
+            const circle = this.circles[0];
+            if (shift > 0 || circle.r > 2) {
+                const oldR = circle.r;
+                this.circles[0].r += this.zoomPower * shift;
+                if (this.circles[0].r < 2)
+                    this.circles[0].r = 2;
+                this.factor *= this.circles[0].r / oldR;
+            }
+        } else {
+            //On commence par calculer le centre de gravité des cercles
+            let centerX = 0;
+            let centerY = 0;
+            this.circles.forEach((circle) => {
+                centerX += circle.x;
+                centerY += circle.y;
+            });
+            centerX /= this.circles.length;
+            centerY /= this.circles.length;
             
-        //Enfin on déplace tous les cercles d'un certain ratio par rapport au centre de gravité
-        //D'après le théorème de Thalès le ratio est le même pour tous
-        //Même pour les distances entre les cercles proches
-        let first: boolean = true;
-        let fact: number;
-        let norm, norm2;
-        for (let i = 0; i < this.circles.length; i++) {
-            const circle = this.circles[i];
-            if (circle.r > 2) {
-                if (first)
-                    norm = this.distance(circle.x, circle.y, centerX, centerY);
-                this.circles[i] = this.moveCircle(circle, centerX, centerY, shift, max);
-                if (first) {
-                    //On récupère le facteur de cette étape de zoom
-                    norm2 = this.distance(circle.x, circle.y, centerX, centerY);
-                    fact = norm2 / norm;
-                    //On ajoute au facteur de zoom total
-                    this.factor *= fact;
-                    first = false;
+            //On calcule ensuite la distance maximale entre un cercle et le centre de gravité
+            let norms = [];
+            this.circles.forEach((circle) => {
+                norms.push(this.distance(centerX, centerY, circle.x, circle.y));
+            });
+            const max = Math.max.apply(null, norms);
+                
+            //Enfin on déplace tous les cercles d'un certain ratio par rapport au centre de gravité
+            //D'après le théorème de Thalès le ratio est le même pour tous
+            //Même pour les distances entre les cercles proches
+            let first: boolean = true;
+            let fact: number;
+            let norm, norm2;
+            for (let i = 0; i < this.circles.length; i++) {
+                const circle = this.circles[i];
+                if (shift > 0 || circle.r > 2) {
+                    if (first)
+                        norm = this.distance(circle.x, circle.y, centerX, centerY);
+                    this.circles[i] = this.moveCircle(circle, centerX, centerY, shift, max);
+                    if (first) {
+                        //On récupère le facteur de cette étape de zoom
+                        norm2 = this.distance(circle.x, circle.y, centerX, centerY);
+                        fact = norm2 / norm;
+                        //On ajoute au facteur de zoom total
+                        this.factor *= fact;
+                        first = false;
+                    }
+                    //On change aussi le rayon des cercles
+                    circle.r *= fact;
                 }
-                //On change aussi le rayon des cercles
-                circle.r *= fact;
             }
         }
     }
