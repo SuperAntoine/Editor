@@ -11,13 +11,10 @@ export class CanvaComponent implements OnInit {
 
     @HostListener('window:resize', ['$event'])
     onResize(event) {
-        new Promise(() => {
-            this.canvaHeight = window.innerHeight * 0.91;
-            this.canvaWidth = window.innerWidth  * 0.75;
-            this.centerCircles();
-        }).then(() => {
-            this.update();
-        });
+        this.canvaHeight = window.innerHeight * 0.91;
+        this.canvaWidth = window.innerWidth  * 0.75;
+        this.centerCircles();
+        this.update();
     }
 	@ViewChild('canvas', { static: true })
     canvas: ElementRef<HTMLCanvasElement>;
