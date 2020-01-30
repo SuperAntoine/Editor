@@ -9,17 +9,20 @@ import { NetworkService } from '../services/network.service';
 })
 export class CanvaComponent implements OnInit {
 
-    @HostListener('window:resize', ['$event'])
-    onResize(event) {
-        this.canvaHeight = window.innerHeight * 0.91;
-        this.canvaWidth = window.innerWidth  * 0.75;
-        this.centerCircles();
-        this.update();
-    }
 	@ViewChild('canvas', { static: true })
     canvas: ElementRef<HTMLCanvasElement>;
 	canvasElement; //Elément canvas
 	ctx: CanvasRenderingContext2D; //Contexte
+    
+    @HostListener('window:resize')
+    onResize() {
+        this.canvaHeight = Math.floor(window.innerHeight * 0.91);
+        this.canvaWidth = Math.floor(window.innerWidth  * 0.75);
+        this.canvas.nativeElement.height = this.canvaHeight;
+        this.canvas.nativeElement.width = this.canvaWidth;
+        this.centerCircles();
+        this.update();
+    }
 	
 	networkSubscription: Subscription;
 	linkingSubscription: Subscription;
@@ -65,8 +68,6 @@ export class CanvaComponent implements OnInit {
     constructor(private networkService: NetworkService) { }
 
     ngOnInit() {		
-        this.canvaHeight = window.innerHeight * 0.91;
-        this.canvaWidth = window.innerWidth * 0.75;
 		this.canvasElement = document.querySelector('canvas');
 		//Récupération du contexte
 		this.ctx = this.canvas.nativeElement.getContext('2d');
@@ -221,6 +222,8 @@ export class CanvaComponent implements OnInit {
                 this.update();
             }
         );
+        
+        this.onResize();
 	}
     
 //FONCTIONS GERANT LES CERCLES
