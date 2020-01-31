@@ -500,10 +500,10 @@ export class CanvaComponent implements OnInit {
         
         this.circles[i].link = this.nextBridgeId;
         this.circles[i].linked = this.circles[j].id;
-        this.circles[i].name = 'switch_out ' + this.circles[i].id;
+        this.circles[i].name = 'switch_in ' + this.circles[i].id;
         this.circles[j].link = this.nextBridgeId++;
         this.circles[j].linked = this.circles[i].id;
-        this.circles[j].name = 'switch_in ' + this.circles[j].id;
+        this.circles[j].name = 'switch_out ' + this.circles[j].id;
 
         this.createLink(id1, id2, speed, true, bridgeName, loopName);
     }
