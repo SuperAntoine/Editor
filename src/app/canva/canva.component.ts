@@ -266,7 +266,8 @@ export class CanvaComponent implements OnInit {
             id: this.nextCircleId++,
             x: x,
             y: y,
-            r: this.baseRadius * this.factor
+            r: this.baseRadius * this.factor,
+            loopId: -1
         };
         if (type == 'bridge') {
             //Quand on crée un pont, on crée aussi un deuxième cercle et on le lie
@@ -421,6 +422,12 @@ export class CanvaComponent implements OnInit {
         }
     }
     
+    getCircleIndex(id: number) {
+        for (let i = 0; i < this.circles.length; i++)
+            if (this.circles[i].id == id)
+                return i;
+    }
+    
 //FONCTIONS GERANT LES LIENS
 
     //Crée un nouveau lien
@@ -572,13 +579,18 @@ export class CanvaComponent implements OnInit {
 				if (isLoop) {
 					let loop = []
 					for (let j of way) {
+                        const circleId = this.links[j].from;
+                        for (let i = 0; i < this.circles.length; i++) {
+                            if (this.circles[i].id == circleId)
+                                this.circles[i].loopId = this.nextLoopId;
+                        }
 						this.links[j].inLoop = true;
-						loop.push(this.links[j].from);
+						loop.push(circleId);
 					}
 					this.loops.push({
 						id: this.nextLoopId++,
 						name: name != null ? name: 'untitled loop ' + this.nextLoopId,
-						loop: way
+						loop: loop
 					});
 				}
 			}
@@ -590,6 +602,11 @@ export class CanvaComponent implements OnInit {
 		for (let k = 0; k < this.loops.length; k++) {
 			const loop = this.loops[k].loop;
 			if (loop.includes(id)) {
+                loop.forEach((circleId) => {
+                    const index = this.getCircleIndex(circleId);
+                    if (index != -1)
+                        this.circles[index].loopId = -1;
+                });
 				this.loops.splice(k--, 1);
 				return;
 			}
@@ -683,9 +700,8 @@ export class CanvaComponent implements OnInit {
                 const n = loop.loop.length;
                 let centerX = 0;
                 let centerY = 0;
-                loop.loop.forEach((linkId) => {
-                    const link = this.getLink(linkId);
-                    const circle = this.getCircle(link.from);
+                loop.loop.forEach((circleId) => {
+                    const circle = this.getCircle(circleId);
                     centerX += circle.x;
                     centerY += circle.y;
                 });
