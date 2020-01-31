@@ -356,6 +356,8 @@ export class CanvaComponent implements OnInit {
 				} else if (this.editing) {
                     //Cas où on veut éditer un cercle
 					const links = this.convertLinks(circle.id);
+                    if (this.isSwitch(circle.id))
+                        circle.bridge_name = this.getBridgeName(circle.id);
 					this.networkService.editElement({ elt: circle, links: links });
 				}
 				else if (this.removing)
@@ -521,6 +523,17 @@ export class CanvaComponent implements OnInit {
 		});
 		return res;
 	}
+    
+    getBridgeName(id: number) {
+        const circle = this.getCircle(id);
+        let res;
+        this.links.forEach((link) => {
+            if (link.bridge && ((circle.type == 'switch_in' && link.from == id) ||
+                                (circle.type == 'switch_out' && link.to == id)))
+                res = link.name;
+        });
+        return res;
+    }
     
 //FONCTIONS GERANT LES BOUCLES
 

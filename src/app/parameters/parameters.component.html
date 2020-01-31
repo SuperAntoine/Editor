@@ -18,7 +18,9 @@
     </div>
     <div *ngIf="editedElement != null">
         <div *ngIf="editedElement.elt.hasOwnProperty('x')">
-            <h2 class="text-center">{{ editedElement.elt.name }} parameters</h2>
+            <h2 class="text-center" *ngIf="editedElement.elt.type == 'station' || editedElement.elt.type == 'shed'">{{ editedElement.elt.name }} parameters</h2>
+            <h2 class="text-center" *ngIf="editedElement.elt.type == 'switch_in'">Switch in of {{ editedElement.elt.bridge_name }} parameters</h2>
+            <h2 class="text-center" *ngIf="editedElement.elt.type == 'switch_out'">Switch out of {{ editedElement.elt.bridge_name }} parameters</h2>
             <div class="form-group">
                 <label for="max_pods">Coordinates</label>
                 <div class="input-group">
