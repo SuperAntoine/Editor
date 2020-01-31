@@ -151,20 +151,33 @@ export class CanvaComponent implements OnInit {
 					for (let i = 0; i < this.links.length; i++) {
 						const link = this.links[i];
 						if (link.id == elt.id) {
-							delete elt.from_name;
-							delete elt.to_name;
 							this.links[i] = elt;
 							if (elt.old_length != elt.length) {
                                 //Si la longueur a été modifiée, il faut déplacer les cercles du liens
 								let circle1 = this.getCircle(link.from);
 								let circle2 = this.getCircle(link.to);
-								const centerX = (circle1.x + circle2.x) / 2;
-								const centerY = (circle1.y + circle2.y) / 2;
-								const shift = (elt.length - elt.old_length) / 2;
-								const i = this.circles.indexOf(circle1);
-								const j = this.circles.indexOf(circle2);
-								this.circles[i] = this.moveCircle(circle1, centerX, centerY, shift, -1);
-								this.circles[j] = this.moveCircle(circle2, centerX, centerY, shift, -1);
+                                
+                                let sourceX, sourceY, shift;
+                                
+                                if (elt.source == 'middle') {
+                                    sourceX = (circle1.x + circle2.x) / 2;
+                                    sourceY = (circle1.y + circle2.y) / 2;
+                                    shift = (elt.length - elt.old_length) / 2;
+                                } else {
+                                    const ref = elt.source == 'from' ? circle1: circle2;
+                                    sourceX = ref.x;
+                                    sourceY = ref.y
+                                    shift = elt.length - elt.old_length;
+                                }
+                                
+                                if (elt.source == 'middle' || elt.source == 'to') {
+                                    const i = this.circles.indexOf(circle1);
+                                    this.circles[i] = this.moveCircle(circle1, sourceX, sourceY, shift, -1);
+                                }
+                                if (elt.source == 'middle' || elt.source == 'from') {
+                                    const j = this.circles.indexOf(circle2);
+                                    this.circles[j] = this.moveCircle(circle2, sourceX, sourceY, shift, -1);
+                                }								
 							}
 						}
 					}
@@ -221,11 +234,13 @@ export class CanvaComponent implements OnInit {
                     if (linkElt.id == id)
                         link = linkElt;
                 });
-				if (link.type != 'bridge') {
-                    //Si ce n'est pas un pont on voudra afficher les noms des cercles connectés
+				if (!link.bridge) {
 					link.from_name = this.getCircle(link.from).name;
 					link.to_name = this.getCircle(link.to).name;
-				}
+				} else {
+                    link.from_name = 'Switch in';
+                    link.to_name = 'Switch out';
+                }
 				link.old_length = link.length;
                 link.old_angle = link.angle;
 				this.networkService.emitEditedElementSubject({ elt: link, links: []});
@@ -421,7 +436,8 @@ export class CanvaComponent implements OnInit {
 				length: this.distanceCircles(id1, id2),
                 angle: this.angleCircles(id1, id2),
 				bridge: bridge,
-                name: bridge ? name: null
+                name: bridge ? name: null,
+                source: 'middle'
 			});
 		}
 		if (this.linking)
@@ -601,12 +617,15 @@ export class CanvaComponent implements OnInit {
 			this.ctx.stroke();
 			this.ctx.fill();
 			//Affichage du texte
-            if (!this.isSwitch(circle.id) && ((circle.type == 'station' && this.options.station)) || (circle.type == 'shed' && this.options.shed)) {
-                this.ctx.fillStyle = 'black';
-                this.ctx.textAlign = 'center';
+            this.ctx.fillStyle = 'black';
+            this.ctx.textAlign = 'center';
+            if (!this.isSwitch(circle.id) && ((circle.type == 'station' && this.options.station)) || (circle.type == 'shed' && this.options.shed))
                 this.ctx.fillText(circle.name, circle.x, circle.y + circle.r + 10);
-                this.ctx.closePath();
-            }
+            else if (circle.type == 'switch_in' && this.options.switch)
+                this.ctx.fillText('Switch in', circle.x, circle.y + circle.r + 10);
+            else if (circle.type == 'switch_out' && this.options.switch)
+                this.ctx.fillText('Switch out', circle.x, circle.y + circle.r + 10);
+            this.ctx.closePath();
 		});
 		
 		//Affichage des liens

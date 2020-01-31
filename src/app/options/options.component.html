@@ -24,6 +24,12 @@
         </div>
     </div>
     <div class="form-group row ml-1 mt-2">
+        <label for="switch" class="col-8 col-form-label">Display switches name</label>
+        <div class="col">
+            <input type="checkbox" id="switch" class="form-control mt-2" name="switch" [(ngModel)]="options.switch" (change)="updateOptions()">
+        </div>
+    </div>
+    <div class="form-group row ml-1 mt-2">
         <label for="zoom" class="col-7 col-form-label">Zoom speed</label>
         <div class="col-2">
             <input style="width: 60px;" type="number" id="zoom" class="form-control-sm mt-2" name="zoom" min="1" max="20" [(ngModel)]="options.zoom" (change)="updateOptions()">

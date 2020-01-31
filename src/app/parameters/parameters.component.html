@@ -75,7 +75,30 @@
             <input type="number" id="speed" class="form-control" name="speed" min="0" max="{{ maxSpeed }}" [(ngModel)]="editedElement.elt.speed" required>
             <label for="length">Length (in m)</label>
             <input type="number" id="length" class="form-control" name="length" min="60" [(ngModel)]="editedElement.elt.length" required>
+            <button class="btn btn-info" type="button" data-toggle="collapse" data-target="#sources" aria-expanded="false" aria-controls="sources">
+                Source
+            </button>
         </div>
+        <div class="collapse ml-3" id="sources">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="source" id="middle" value="middle" [(ngModel)]="editedElement.elt.source">
+                    <label class="form-check-label" for="middle">
+                        Middle
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="source" id="from" value="from" [(ngModel)]="editedElement.elt.source">
+                    <label class="form-check-label" for="middle">
+                        {{ editedElement.elt.from_name }}
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="source" id="to" value="to" [(ngModel)]="editedElement.elt.source">
+                    <label class="form-check-label" for="to">
+                        {{ editedElement.elt.to_name }}
+                    </label>
+                </div>
+            </div>
     </div>
     <button type="submit" class="btn btn-primary mt-2" [disabled]="f.invalid">Save</button>
 </form>
