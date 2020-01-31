@@ -326,6 +326,16 @@ export class CanvaComponent implements OnInit {
 				for (let j = 0; j < this.links.length; j++) {
 					const link = this.links[j];
 					if (link.from == id || link.to == id) {
+                        //Si le lien est un bridge il faut diminuer tous les bridgeId de 1
+                        if (link.bridge) {
+                            for (let k = 0; k < this.circles.length; k++) {
+                                const circleBis = this.circles[k];
+                                if (this.isSwitch(circleBis.id) && circleBis.link > circle.link)
+                                    this.circles[k].link--;
+                            }
+                            this.nextBridgeId--;
+                        }
+                        
 						this.links.splice(j--, 1);
 						this.removeLoop(link.id);
 					}
