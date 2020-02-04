@@ -932,21 +932,31 @@ export class CanvaComponent implements OnInit {
     convertTimeToSeconds(hours: number, minutes: number) {
         return hours * 3600 + minutes * 60;
     }
+    
+    equalsOne(n: number) {
+        return n > 0.9 && n < 1.1;
+    }
+    
+    containsSwitchLinkedWithAloneSwitch(loop) {
+        
+    }
 
 
 //FONCTIONS DE CONVERTION
 
     //Convertit le réseau modèle édtieur -> simulateur
 	convertNetwork() {
+        while (!this.equalsOne(this.factor)) {
+            const shift = this.factor < 1 ? 1: -1;
+            this.processZoom(shift);
+            this.update();
+        }
+        
         this.updateViewBox();
 		this.network.loops = [];
 		this.network.bridges = [];
-        
         this.network.time = this.convertTimeToSeconds(this.network.hours, this.network.minutes);
         
-        console.log(this.circles);
-        console.log(this.links);
-        console.log(this.loops);
         //On parcourt les boucles
 		for (let i = 0; i < this.loops.length; i++) {
 			const loop = this.loops[i];
@@ -985,7 +995,6 @@ export class CanvaComponent implements OnInit {
 				}
 				this.network.loops[i].elements.push(elt);
                 //On ajoute ensuite une section
-                console.log(circleId);
                 const link = this.goingFrom(circleId);
 				this.network.loops[i].sections.push({
 					speed: link.speed,
