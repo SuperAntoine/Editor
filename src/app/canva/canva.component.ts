@@ -250,6 +250,7 @@ export class CanvaComponent implements OnInit {
         // Importation d'un réseau
         this.jsonSubcription = this.networkService.jsonSubject.subscribe(
             (network) => {
+                this.networkService.init();
                 this.newNetwork();
                 this.convertFromNetwork(network);
                 this.update();
@@ -284,7 +285,7 @@ export class CanvaComponent implements OnInit {
             this.linkBridge(n-1, n, 16.67, null, null);
         } else {
             //Cas d'un non-switch
-            elt['name'] = name != null ? name: type + ' ' + this.nextCircleId.toString();
+            elt['name'] = name != null ? name: type + ' ' + (this.nextCircleId-1);
             elt['type'] = type;
             elt['max_pods'] = max_pods;
             if (type == 'station')
@@ -322,6 +323,7 @@ export class CanvaComponent implements OnInit {
 		for (let i = 0; i < this.circles.length; i++)
 			if (this.circles[i].id == id) {
 				const circle = this.circles[i];
+                this.removeLoop(circle.id);
 				this.circles.splice(i, 1);
 				for (let j = 0; j < this.links.length; j++) {
 					const link = this.links[j];
@@ -337,7 +339,6 @@ export class CanvaComponent implements OnInit {
                         }
                         
 						this.links.splice(j--, 1);
-						this.removeLoop(link.id);
 					}
 				}
 				if (circle.type == 'switch_in' || circle.type == 'switch_out')
@@ -436,6 +437,16 @@ export class CanvaComponent implements OnInit {
         for (let i = 0; i < this.circles.length; i++)
             if (this.circles[i].id == id)
                 return i;
+        return -1;
+    }
+    
+    goingFrom(id: number) {
+        for (let i = 0; i < this.links.length; i++) {
+            const link = this.links[i];
+            if (!link.bridge && link.from == id)
+                return link;
+        }
+        return null;
     }
     
 //FONCTIONS GERANT LES LIENS
@@ -483,12 +494,17 @@ export class CanvaComponent implements OnInit {
     //Supprimer un lien selon l'id + la boucle si besoin
 	// TODO: intégrer à removeCircle
     removeLink(id: number) {
-		for (let i = 0; i < this.links.length; i++)
-			if (this.links[i].id == id) {
+		for (let i = 0; i < this.links.length; i++) {
+            const link = this.links[i];
+			if (link.id == id) {
+                if (link.inLoop) {
+                    const loopId = this.getCircle(link.from).loopId;
+                    this.removeLoop(loopId);
+                }
 				this.links.splice(i, 1);
-				this.removeLoop(id);
 				return;
 			}
+        }
 	}
     
 //FONCTIONS ANNEXES SUR LES LIENS
@@ -614,8 +630,16 @@ export class CanvaComponent implements OnInit {
 			if (loop.includes(id)) {
                 loop.forEach((circleId) => {
                     const index = this.getCircleIndex(circleId);
-                    if (index != -1)
+                    if (index != -1) {
+                        //On enlève le loopId
                         this.circles[index].loopId = -1;
+                        //En enlève les liens de la boucle
+                        for (let i = 0; i < this.links.length; i++) {
+                            const link = this.links[i];
+                            if (link.from == circleId || link.to == circleId)
+                                this.links[i].inLoop = false;
+                        }
+                    }
                 });
 				this.loops.splice(k--, 1);
 				return;
@@ -662,9 +686,9 @@ export class CanvaComponent implements OnInit {
             if (!this.isSwitch(circle.id) && ((circle.type == 'station' && this.options.station)) || (circle.type == 'shed' && this.options.shed))
                 this.ctx.fillText(circle.name, circle.x, circle.y + circle.r + 10);
             else if (circle.type == 'switch_in' && this.options.switch)
-                this.ctx.fillText('Switch in', circle.x, circle.y + circle.r + 10);
+                this.ctx.fillText(circle.name, circle.x, circle.y + circle.r + 10);
             else if (circle.type == 'switch_out' && this.options.switch)
-                this.ctx.fillText('Switch out', circle.x, circle.y + circle.r + 10);
+                this.ctx.fillText(circle.name, circle.x, circle.y + circle.r + 10);
             this.ctx.closePath();
 		});
 		
@@ -919,7 +943,10 @@ export class CanvaComponent implements OnInit {
 		this.network.bridges = [];
         
         this.network.time = this.convertTimeToSeconds(this.network.hours, this.network.minutes);
-
+        
+        console.log(this.circles);
+        console.log(this.links);
+        console.log(this.loops);
         //On parcourt les boucles
 		for (let i = 0; i < this.loops.length; i++) {
 			const loop = this.loops[i];
@@ -929,11 +956,10 @@ export class CanvaComponent implements OnInit {
 				sections: [],
 				pods: []
 			});
-            //On parcourt les liens de cette boucle
-			loop.loop.forEach((linkId) => {
-                //Pour chaque lien on ajoute le cercle source
-				const link = this.getLink(linkId);
-				const circle = this.getCircle(link.from);
+            //On parcourt les cerlces de cette boucle
+			loop.loop.forEach((circleId) => {
+                //On ajoute chaque cerlce
+				const circle = this.getCircle(circleId);
 				let elt = {
 					type: circle.type,
 					x: circle.x,
@@ -959,6 +985,8 @@ export class CanvaComponent implements OnInit {
 				}
 				this.network.loops[i].elements.push(elt);
                 //On ajoute ensuite une section
+                console.log(circleId);
+                const link = this.goingFrom(circleId);
 				this.network.loops[i].sections.push({
 					speed: link.speed,
 					path: {

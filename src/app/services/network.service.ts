@@ -171,10 +171,11 @@ export class NetworkService {
 		this.setNetwork();
 		this.unlink();
 		if (this.editing)
-			this.toggleEdit();
+			this.toggleEdit();       
 		if (this.removing)
 			this.toggleRemove();
 		this.emitNewNetworkSubject();
+        this.editedElementSubject.next(null);
 	}
 	
 	convert() {

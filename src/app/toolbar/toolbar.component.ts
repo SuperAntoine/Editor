@@ -136,6 +136,7 @@ export class ToolbarComponent implements OnInit {
         file.text().then((text) => {
             try {
                 this.networkService.emitJsonSubject(JSON.parse(text));
+                this.networkService.editedElementSubject.next(null);
             } catch(SyntaxError) {
                 console.log('error');
             }
