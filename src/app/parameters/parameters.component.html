@@ -55,6 +55,11 @@
                 </div>
                 <div *ngIf="editedElement.elt.type == 'station'">
                     <label for="station_type">Station type</label>
+                    <select id="station_type" class="custom-select" name="station_type" [(ngModel)]="editedElement.elt.station_type">
+                        <option value="0">City</option>
+                        <option value="1">Residential</option>
+                        <option value="2">Activity</option>
+                    </select>
                     <input type="number" id="station_type" class="form-control" name="station_type" min="1" max="3" [(ngModel)]="editedElement.elt.station_type" required>
                 </div>
             </div>

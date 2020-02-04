@@ -189,7 +189,7 @@ export class CanvaComponent implements OnInit {
         // Réception de l'ordre de création d'un nouvel élément
 		this.newElementSubscription = this.networkService.newElementSubject.subscribe(
 			(type: string) => {
-				this.createCircle(this.canvasElement.width/2, this.canvasElement.height/2, type == 'station' ? 4: 50, null, type)
+				this.createCircle(this.canvasElement.width/2, this.canvasElement.height/2, type == 'station' ? 4: 50, null, type, 1)
 				this.unToggleAll();
 				this.update()
 			}
@@ -261,7 +261,7 @@ export class CanvaComponent implements OnInit {
 //FONCTIONS GERANT LES CERCLES
 
     //Crée un cercle
-    createCircle(x: number, y: number, max_pods: number, name: string, type: string) {
+    createCircle(x: number, y: number, max_pods: number, name: string, type: string, station_type: number) {
         
         let elt = {
             id: this.nextCircleId++,
@@ -289,7 +289,7 @@ export class CanvaComponent implements OnInit {
             elt['type'] = type;
             elt['max_pods'] = max_pods;
             if (type == 'station')
-                elt['station_type'] = 1;
+                elt['station_type'] = station_type;
             this.circles.push(elt);
         }
     }
@@ -1036,7 +1036,8 @@ export class CanvaComponent implements OnInit {
                     const statOrShed = elt.type == 'station' || elt.type == 'shed'
                     const max_pods = statOrShed ? elt.pods.max: null;
                     const name = statOrShed ? elt.name: null;
-                    this.createCircle(elt.x, elt.y, max_pods, name, elt.type);
+                    const station_type = statOrShed ? elt.station_type: null;
+                    this.createCircle(elt.x, elt.y, max_pods, name, elt.type, station_type);
                     if (!statOrShed)
                         bridges[elt.id_bridge].push(this.circles.length - 1);
                 }
