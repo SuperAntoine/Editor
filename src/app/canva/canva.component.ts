@@ -708,7 +708,7 @@ export class CanvaComponent implements OnInit {
                 let side = 1;
                 if (circle2.x < circle1.x)
                     side = -1
-                const coef = 20 * side;
+                const coef = 11 * side * this.factor;
                 //Affichage des flèches
                 this.ctx.lineTo(circle2.x + Math.cos(angle) * coef, circle2.y + Math.sin(angle) * coef);
                 this.ctx.stroke()
@@ -747,6 +747,15 @@ export class CanvaComponent implements OnInit {
             });
         }
 	}
+    
+    goToZoom(factor: number) {
+        let shift;
+        while (!this.equalsAround(this.factor, factor)) {
+            shift = this.factor < factor ? 0.01: -0.01;
+            this.processZoom(shift);
+        }
+        this.update();
+    }
     
     //Gère le zoom
     processZoom(shift: number) {   
@@ -806,7 +815,6 @@ export class CanvaComponent implements OnInit {
 	
     //Change la police d'écriture
     scaleFont() {
-		
 		this.ctx.font = this.fontSize.toString() + 'px serif';
 	}
     
@@ -921,6 +929,7 @@ export class CanvaComponent implements OnInit {
 		this.update();
 	}
     
+    //Convertit seconde en heure minute
     convertSecondsToTime(seconds: number) {
         seconds /= 60;
         return {
@@ -929,16 +938,25 @@ export class CanvaComponent implements OnInit {
         }
     }
     
+    //Convertit heure minute en secondes
     convertTimeToSeconds(hours: number, minutes: number) {
         return hours * 3600 + minutes * 60;
     }
     
-    equalsOne(n: number) {
-        return n > 0.9 && n < 1.1;
+    //Renvoie vrai si la boucle contient un switch dont l'autre switch n'est pas dans une boucle
+    containsSwitchLinkedWithAloneSwitch(loop) {
+        for (let i = 0; i < loop.loop.length; i++) {
+            const circle = this.getCircle(loop.loop[i]);
+            const other = this.getCircle(circle.linked);
+            if (this.isSwitch(circle.id) && other.loopId == -1)
+                return true;
+        }
+        return false;
     }
     
-    containsSwitchLinkedWithAloneSwitch(loop) {
-        
+    //Egalité de float
+    equalsAround(a: number, b: number) {
+        return a > b - 0.01 && a < b + 0.01;
     }
 
 
@@ -946,11 +964,7 @@ export class CanvaComponent implements OnInit {
 
     //Convertit le réseau modèle édtieur -> simulateur
 	convertNetwork() {
-        while (!this.equalsOne(this.factor)) {
-            const shift = this.factor < 1 ? 1: -1;
-            this.processZoom(shift);
-            this.update();
-        }
+        this.goToZoom(1);
         
         this.updateViewBox();
 		this.network.loops = [];
@@ -960,53 +974,55 @@ export class CanvaComponent implements OnInit {
         //On parcourt les boucles
 		for (let i = 0; i < this.loops.length; i++) {
 			const loop = this.loops[i];
-			this.network.loops.push({
-				name: loop.name,
-				elements: [],
-				sections: [],
-				pods: []
-			});
-            //On parcourt les cerlces de cette boucle
-			loop.loop.forEach((circleId) => {
-                //On ajoute chaque cerlce
-				const circle = this.getCircle(circleId);
-				let elt = {
-					type: circle.type,
-					x: circle.x,
-					y: circle.y
-				}
-				if (this.isSwitch(circle.id)) {
-					elt['pods'] = [];
-					elt['id_bridge'] = circle.link;
-				} else {
-                    elt['name'] = circle.name;
-					elt['pods'] = {
-						max: circle.max_pods,
-						count: circle.type == 'station' ? 0: circle.max_pods
-					};
-					if (elt.type == 'station') {
-						elt['station_type'] = circle.station_type;
-						elt['travelers'] = {
-							count: 0, 
-							average_waiting_time: 0, 
-							all_time_count: 0
-						};
-					}
-				}
-				this.network.loops[i].elements.push(elt);
-                //On ajoute ensuite une section
-                const link = this.goingFrom(circleId);
-				this.network.loops[i].sections.push({
-					speed: link.speed,
-					path: {
-						type: 'line'
-					}
-				});
-			});
-		}
+            if (!this.containsSwitchLinkedWithAloneSwitch(loop)) {
+                this.network.loops.push({
+                    name: loop.name,
+                    elements: [],
+                    sections: [],
+                    pods: []
+                });
+                //On parcourt les cerlces de cette boucle
+                loop.loop.forEach((circleId) => {
+                    //On ajoute chaque cerlce
+                    const circle = this.getCircle(circleId);
+                    let elt = {
+                        type: circle.type,
+                        x: circle.x,
+                        y: circle.y
+                    }
+                    if (this.isSwitch(circle.id)) {
+                        elt['pods'] = [];
+                        elt['id_bridge'] = circle.link;
+                    } else {
+                        elt['name'] = circle.name;
+                        elt['pods'] = {
+                            max: circle.max_pods,
+                            count: circle.type == 'station' ? 0: circle.max_pods
+                        };
+                        if (elt.type == 'station') {
+                            elt['station_type'] = circle.station_type;
+                            elt['travelers'] = {
+                                count: 0, 
+                                average_waiting_time: 0, 
+                                all_time_count: 0
+                            };
+                        }
+                    }
+                    this.network.loops[i].elements.push(elt);
+                    //On ajoute ensuite une section
+                    const link = this.goingFrom(circleId);
+                    this.network.loops[i].sections.push({
+                        speed: link.speed,
+                        path: {
+                            type: 'line'
+                        }
+                    });
+                });
+            }
+        }
         //On parcourt tous les liens qui sont des bridge
         this.links.forEach((link) => {
-            if (link.bridge) {
+            if (link.bridge && this.goingFrom(link.from) != null && this.goingFrom(link.to) != null) {
                 this.network.bridges.push({
                     name: link.name,
                     section: {
