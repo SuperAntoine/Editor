@@ -149,7 +149,11 @@ export class ToolbarComponent implements OnInit {
     }
     
     exportJSON() {
-		let blob = new Blob([JSON.stringify(this.network)], { type: 'application/json' });
+        let network = Object.assign({}, this.network);
+        delete network.hours;
+        delete network.minutes;
+        
+		let blob = new Blob([JSON.stringify(network)], { type: 'application/json' });
 		let url = window.URL.createObjectURL(blob);
 		this.fileUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
         //Lance le téléchargement

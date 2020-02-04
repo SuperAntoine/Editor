@@ -95,6 +95,8 @@ export class NetworkService {
 		this.network = {
 			name: 'Untitled network',
 			time: 0,
+            hours: 0,
+            minutes: 0,
 			state: 42,
 			running: false,
 			margin_min: 2,

@@ -896,6 +896,18 @@ export class CanvaComponent implements OnInit {
 		this.nextBridgeId = 0;
 		this.update();
 	}
+    
+    convertSecondsToTime(seconds: number) {
+        seconds /= 60;
+        return {
+            hours: Math.floor(seconds / 60),
+            minutes: seconds % 60
+        }
+    }
+    
+    convertTimeToSeconds(hours: number, minutes: number) {
+        return hours * 3600 + minutes * 60;
+    }
 
 
 //FONCTIONS DE CONVERTION
@@ -905,6 +917,8 @@ export class CanvaComponent implements OnInit {
         this.updateViewBox();
 		this.network.loops = [];
 		this.network.bridges = [];
+        
+        this.network.time = this.convertTimeToSeconds(this.network.hours, this.network.minutes);
 
         //On parcourt les boucles
 		for (let i = 0; i < this.loops.length; i++) {
@@ -978,6 +992,10 @@ export class CanvaComponent implements OnInit {
         this.network.loops = [];
         this.network.bridges = [];
         this.networkService.updateNetwork(this.network);
+        
+        const time = this.convertSecondsToTime(network.time);
+        this.network['hours'] = time['hours'];
+        this.network['minutes'] = time['minutes'];
         
         let bridges = [];
         for (let i = 0; i < network.bridges.length; i++)
