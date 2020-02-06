@@ -1077,7 +1077,7 @@ export class CanvaComponent implements OnInit {
         this.network['minutes'] = time['minutes'];
         
         let bridges = [];
-        for (const bridges of network.bridges)
+        for (const bridge of network.bridges)
             bridges.push([]);
         
         network.loops.forEach((loop) => {        
@@ -1106,9 +1106,10 @@ export class CanvaComponent implements OnInit {
         
         this.centerCircles();
 
-        for (const bridge of bridges) {
-            const i = bridge[0];
-            const j = bridge[1];
+        for (let k = 0; k < bridges.length; k++) {
+            const i = bridges[k][0];
+            const j = bridges[k][1];
+            const bridge = network.bridges[k];
             this.linkBridge(i, j, bridge.section.speed, bridge.name, null);
         }
     }
