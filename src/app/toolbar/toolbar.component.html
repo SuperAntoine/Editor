@@ -1,9 +1,4 @@
 <div class="btn-toolbar" role="toolbar">
-    <div class="btn-group mr-2" role="groupe">
-        <a target="_blank" rel="noopener noreferrer" href="http://urbanloop.univ-lorraine.fr/">
-            <img src="assets/urbanloop.png">
-        </a>
-    </div>
     <div class="btn-group mr-2" role="group">
         <button class="btn btn-primary" (click)="newNetwork()">New network</button>
         <label class="btn btn-primary export">
@@ -34,7 +29,7 @@
             Remove
         </button>
     </div>
-    <div class="btn-group" role="group">
+    <div class="btn-group mr-2" role="group">
         <button id="btn_options" 
                 class="btn"
                 [ngClass]="{'btn-primary': !options, 'btn-warning': options}"
@@ -42,6 +37,11 @@
                 aria-describedby="menu_options">
             Options
         </button>
+    </div>
+    <div class="btn-group" role="groupe">
+        <a target="_blank" rel="noopener noreferrer" href="http://urbanloop.univ-lorraine.fr/">
+            <img src="assets/urbanloop.png">
+        </a>
     </div>
 </div>
 <div id="menu_options" role="menu_options">

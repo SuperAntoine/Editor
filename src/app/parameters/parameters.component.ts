@@ -61,6 +61,10 @@ export class ParametersComponent implements OnInit {
 		this.networkService.emitGoToLinkSubject(id);
 	}
     
+    goToLoop() {
+        this.networkService.emitGoToLoopSubject(this.editedElement.loop.id);
+    }
+    
     radToDeg(angle: number) {
         return angle * 180 / Math.PI;
     }

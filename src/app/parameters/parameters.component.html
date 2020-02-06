@@ -4,7 +4,7 @@
         <div class="form-group">
             <label for="name">Name</label>
             <input type="text" id="name" class="form-control" name="name" [(ngModel)]="network.name" required>
-            <label for="time">Starting time (in s)</label>
+            <label for="time">Starting time</label>
             <div id="time" class="form-inline">
                 <div class="input-group mb-2 mr-sm-2">
                     <input type="number" id="hours" class="form-control" name="hours" min="0" max="23" [(ngModel)]="network.hours" required>
@@ -22,11 +22,11 @@
             <input type="number" id="max_speed" class="form-control" name="max_speed" min="0" [(ngModel)]="network.max_speed" required>
             <label for="pod_size">Pod size (in m)</label>
             <input type="number" id="pod_size" class="form-control" name="pod_size" min="0" [(ngModel)]="network.pod_size" required>
-            <label for="places_number">Number of discreet places</label>
+            <label for="places_number">Number of places</label>
             <input type="number" id="places_number" class="form-control" name="places_number" min="0" [(ngModel)]="network.places_number" required>
         </div>
     </div>
-    <div *ngIf="editedElement != null">
+    <div class="form-group" *ngIf="editedElement != null">
         <div *ngIf="editedElement.elt.hasOwnProperty('x')">
             <h2 class="text-center" *ngIf="editedElement.elt.type == 'station' || editedElement.elt.type == 'shed'">{{ editedElement.elt.name }} parameters</h2>
             <h2 class="text-center" *ngIf="editedElement.elt.type == 'switch_in'">Switch in of {{ editedElement.elt.bridge_name }} parameters</h2>
@@ -77,8 +77,12 @@
                     </li>
                 </ul>
             </div>
+            <div *ngIf="editedElement.loop != null">
+                <h2>Loop : {{ editedElement.loop.name }}</h2>
+                <button class="btn btn-primary" (click)="goToLoop()">Go to</button>
+            </div>
         </div>
-        <div class="form-group" *ngIf="!editedElement.elt.hasOwnProperty('x')">
+        <div class="form-group" *ngIf="!editedElement.elt.hasOwnProperty('x') && !editedElement.elt.hasOwnProperty('isLoop')">
             <div class="text-center" *ngIf="!editedElement.elt.bridge">
                 <h2>Section paramters</h2>
                 <h3>Section from {{ editedElement.elt.from_name }} to {{ editedElement.elt.to_name }}</h3>
@@ -97,25 +101,32 @@
             </button>
         </div>
         <div class="collapse ml-3" id="sources">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="source" id="middle" value="middle" [(ngModel)]="editedElement.elt.source">
-                    <label class="form-check-label" for="middle">
-                        Middle
-                    </label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="source" id="from" value="from" [(ngModel)]="editedElement.elt.source">
-                    <label class="form-check-label" for="middle">
-                        {{ editedElement.elt.from_name }}
-                    </label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="source" id="to" value="to" [(ngModel)]="editedElement.elt.source">
-                    <label class="form-check-label" for="to">
-                        {{ editedElement.elt.to_name }}
-                    </label>
-                </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="source" id="middle" value="middle" [(ngModel)]="editedElement.elt.source">
+                <label class="form-check-label" for="middle">
+                    Middle
+                </label>
             </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="source" id="from" value="from" [(ngModel)]="editedElement.elt.source">
+                <label class="form-check-label" for="middle">
+                    {{ editedElement.elt.from_name }}
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="source" id="to" value="to" [(ngModel)]="editedElement.elt.source">
+                <label class="form-check-label" for="to">
+                    {{ editedElement.elt.to_name }}
+                </label>
+            </div>
+        </div>
+        <div class="form-group" *ngIf="editedElement.elt.hasOwnProperty('isLoop')">
+            <div class="text-center">
+                <h2>{{ editedElement.elt.name }} parameters</h2>
+                <label for="name">Name</label>
+                <input type="text" id="name" class="form-control" name="name" [(ngModel)]="editedElement.elt.name" required>
+            </div>
+        </div>
     </div>
     <button type="submit" class="btn btn-primary mt-2" [disabled]="f.invalid">Save</button>
 </form>
